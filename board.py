@@ -1,8 +1,8 @@
-
 class Board:
 	"""
 	Provides the 4x4x4 board for the game, holds all moves, can be used for lookahead
 	"""
+
 
 	#constructor	
 	def __init__(self):
@@ -389,7 +389,6 @@ class Board:
 			current = self.b[p[0]][p[1]][p[2]]
 			values += [current]
 		return values
-
 
 
 
