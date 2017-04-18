@@ -3,7 +3,6 @@ class Board:
 	Provides the 4x4x4 board for the game, holds all moves, can be used for lookahead
 	"""
 
-
 	#constructor	
 	def __init__(self):
 		""" Creates original Board """
@@ -29,12 +28,18 @@ class Board:
 				for k in range(4):
 					current = self.b[i][j][k]
 					if (current == 0):
-						points += [i,j,k]
+						points += [[i,j,k]]
 		return points
 
 	def myPoints(self, n):
 		"""
 		Return a list of all points player n has on the board
+		"""
+		return []
+
+	def otherNumber(n):
+		"""
+		Returns the other player's number
 		"""
 
 	def numMoves(self, n):
@@ -56,12 +61,12 @@ class Board:
 
 		current = self.b[x][y][z]
 		if (current == 0):
-			self.b[x][z][y] = n
+			self.b[x][y][z] = n
 			return True
 		else:
 			return False
 
-	# Find lines and helper functions
+	# Find lines
 	def findLines(self,n,num):
 		""" 
 		Checks all lines on the board, returns the line number
@@ -410,11 +415,36 @@ class Board:
 
 	# finding force moves
 	def findForces(self, n):
+		"""
+		Returns pairs of forcing moves
+		"""
+		pairs = []
+		blocked = False
+
+		for l in range(76):
+			points = self.lineToPoints(line)
+			openPoints = []
+			for i in range(4):
+				v = self.b[points[i][0]][points[i][1]][points[i][2]]
+				if (v == 0):
+					openPoints += [i]
+				elif (v != n):
+					blocked = True
+					break
+			if (not blocked and len(openPoints) == 2):
+				pairs += [[points[openPoints[0]], points[openPoints[1]]]]
+		return pairs
 
 	def linesForPoint(self, p):
+		"""
+		Returns a list of all the line numbers passing through point p
+		"""
 
 	def openLinesForPoint(self, n, p, num):
-
+		"""
+		Returns a list of all the line numbers of lines passing through
+		point p, with no non n moves and num moves by player n
+		"""
 
 
 

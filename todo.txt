@@ -1,26 +1,42 @@
 Board:
-Write myPoints
-Write findForces
-Write pointToLines
-Write pointToOpenLines
+otherNumber
+myPoints
+pointToLines
+pointToOpenLines
 
 BoardTest:
-Write test_openPoints
-Write test_myPoints
-Write test_numMoves
-Write test_move
-Write test_findLines
-Write test_lineToPoints
-Write test_rowsToPoints
-Write test_colsToPoints
-Write test_vrtsToPoints
-Write test_diasToPoints
-Write test_pointsToLine
-Write test_lineToValues
-Write test_findForces
-Write test_linesForPoint
-Write test_openLinesForPoint
+test_findLines
+test_lineToPoints
+test_pointsToLine
+test_lineToValues
+test_findForces
+test_linesForPoint
+test_openLinesForPoint
 
 Brain:
+bestMove
+lookAhead
+forceToFinish
+updateForPoint
+updateForForce
+updateAll
+checkWinsForPoint
+checkWins
+
+BrainTest:
+test_bestMove
+test_lookAhead
+test_forceToFinish
+test_updateForPoint
+test_updateForForce
+test_updateAll
+test_checkWinsForPoint
+test_checkWins
 
 Display:
+
+DisplayTest:
+
+Master:
+
+MasterTest:
