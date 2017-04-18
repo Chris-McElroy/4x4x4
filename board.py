@@ -19,6 +19,24 @@ class Board:
 		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 		return sum(currentMoves)
 
+	def openPoints(self):
+		"""
+		Return a list of all open points on the board
+		"""
+		points = []
+		for i in range(4):
+			for j in range(4):
+				for k in range(4):
+					current = self.b[i][j][k]
+					if (current == 0):
+						points += [i,j,k]
+		return points
+
+	def myPoints(self, n):
+		"""
+		Return a list of all points player n has on the board
+		"""
+
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
 		p1 = 0
@@ -218,17 +236,17 @@ class Board:
 		points that make up that line, listed by x, y, and z
 		"""
 		if (0 <= line and line < 16):
-			return self.rowToPoints(line)
+			return self.rowsToPoints(line)
 		elif (16 <= line and line < 32):
-			return self.colToPoints(line)
+			return self.colsToPoints(line)
 		elif (32 <= line and line < 48):
-			return self.vrtToPoints(line)
+			return self.vrtsToPoints(line)
 		elif (48 <= line and line < 76):
-			return self.diaToPoints(line)
+			return self.diasToPoints(line)
 		else:
 			return []
 
-	def rowToPoints(self, line):
+	def rowsToPoints(self, line):
 		"""
 		Given a line number between 0 and 15, this will return the
 		set of four points that make up that line, listed by x, y, and z
@@ -238,7 +256,7 @@ class Board:
 		y = (l-z)/4
 		return [[i,y,z] for i in range(4)]
 
-	def colToPoints(self, line):
+	def colsToPoints(self, line):
 		"""
 		Given a line number between 16 and 31, this will return the
 		set of four points that make up that line, listed by x, y, and z
@@ -248,7 +266,7 @@ class Board:
 		z = (l-x)/4
 		return [[x,i,z] for i in range(4)]
 
-	def vrtToPoints(self, line):
+	def vrtsToPoints(self, line):
 		"""
 		Given a line number between 32 and 47, this will return the
 		set of four points that make up that line, listed by x, y, and z
@@ -258,7 +276,7 @@ class Board:
 		x = (l-y)/4
 		return [[x,y,i] for i in range(4)]
 
-	def diaToPoints(self, line):
+	def diasToPoints(self, line):
 		"""
 		Given a line number between 48 and 75, this will return the
 		set of four points that make up that line, listed by x, y, and z
@@ -389,6 +407,13 @@ class Board:
 			current = self.b[p[0]][p[1]][p[2]]
 			values += [current]
 		return values
+
+	# finding force moves
+	def findForces(self, n):
+
+	def linesForPoint(self, p):
+
+	def openLinesForPoint(self, n, p, num):
 
 
 

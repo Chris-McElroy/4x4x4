@@ -1,0 +1,26 @@
+Board:
+Write myPoints
+Write findForces
+Write pointToLines
+Write pointToOpenLines
+
+BoardTest:
+Write test_openPoints
+Write test_myPoints
+Write test_numMoves
+Write test_move
+Write test_findLines
+Write test_lineToPoints
+Write test_rowsToPoints
+Write test_colsToPoints
+Write test_vrtsToPoints
+Write test_diasToPoints
+Write test_pointsToLine
+Write test_lineToValues
+Write test_findForces
+Write test_linesForPoint
+Write test_openLinesForPoint
+
+Brain:
+
+Display:
