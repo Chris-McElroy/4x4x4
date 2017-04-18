@@ -34,6 +34,7 @@ test_checkWinsForPoint
 test_checkWins
 
 Display:
+Figure out how we want display to look
 
 DisplayTest:
 
