@@ -1,11 +1,10 @@
 Board:
 otherNumber
 myPoints
-pointToLines
-pointToOpenLines
+linesForPoint
+openLinesForPoint
 
 BoardTest:
-test_findLines
 test_lineToPoints
 test_pointsToLine
 test_lineToValues
