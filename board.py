@@ -37,7 +37,7 @@ class Board:
 		"""
 		return []
 
-	def otherNumber(n):
+	def otherNumber(self, n):
 		"""
 		Returns the other player's number
 		"""
@@ -77,14 +77,16 @@ class Board:
 		lines = []
 
 		for l in range(76):
-			values = self.lineToValues(line)
+			values = self.lineToValues(l)
+			p1 = 0
+			p2 = 0
 			for v in values:
 				if (v == n):
 					p1 += 1
 				elif (v != 0):
 					p2 += 1
 			if (p1 >= num and p2 == 0):
-				lines += l
+				lines += [l]
 
 		return lines
 
