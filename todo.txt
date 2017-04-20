@@ -2,15 +2,6 @@ Board:
 otherNumber
 myPoints
 linesForPoint
-openLinesForPoint
-
-BoardTest:
-test_lineToPoints
-test_pointsToLine
-test_lineToValues
-test_findForces
-test_linesForPoint
-test_openLinesForPoint
 
 Brain:
 bestMove
