@@ -24,7 +24,7 @@ class BoardTest(unittest.TestCase):
 	onePlaneBoard = [[[1 if (i%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 	# forcing boards
 	twoMoveBoard = [[[1 if (k%4 == 0 and j%4 == 0 and i % 2 != 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
-	forcingBoard = [[[1 if (i%2 != 2) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
+	forcingBoard = [[[1 if (i%2 != 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 
 	def test_clearBoard(self):
 		test1 = Board()
@@ -252,26 +252,94 @@ class BoardTest(unittest.TestCase):
 	def test_findForces(self):
 		test1 = Board()
 		pairs = []
-		self.assertEqual(test1.findForces(),pairs)
+		self.assertEqual(test1.findForces(1),pairs)
 
 		test1.b = self.twoMoveBoard
-		pairs = [[0,0,0],[0,0,2]]
-		self.assertEqual(test1.findForces(),pairs)
+		pairs = [[[0,0,0],[0,0,2]]]
+		self.assertEqual(test1.findForces(1),pairs)
 
 		test1.b = self.fourMoveBoard
-		pairs = [[1,2,1],[2,2,1]]
-		self.assertEqual(test1.findForces(),pairs)
+		pairs = []
+		self.assertEqual(test1.findForces(1),pairs)
+		self.assertEqual(test1.findForces(2),pairs)
 
-		#test1.b = self.forcingBoard
-		#pairs = [[1,2,1],[2,2,1]]
+		test1.b = self.forcingBoard
+		pairs = [[[i,j,0],[i,j,2]] for i in range(4) for j in range(4)]
+		pairs += [[[i,0,0],[i,2,2]] for i in range(4)]
+		pairs += [[[i,1,2],[i,3,0]] for i in range(4)]
+		pairs += [[[0,i,0],[2,i,2]] for i in range(4)]
+		pairs += [[[1,i,2],[3,i,0]] for i in range(4)]
+		pairs += [[[0,0,0],[2,2,2]],[[1,1,2],[3,3,0]],[[0,3,0],[2,1,2]],[[3,0,0],[1,2,2]]]
+		self.assertEqual(test1.findForces(1),pairs)
 
+	def test_linesForPoint(self):
+		test1 = Board()
+		point = [0,0,0]
+		lines = [0,16,32,48,56,64,72]
+		self.assertEqual(test1.linesForPoint(point),lines)
 
+		point = [1,0,0]
+		lines = [0,17,36,49]
+		self.assertEqual(test1.linesForPoint(point),lines)
 
-	# def test_linesForPoint(self):
+		point = [2,1,2]
+		lines = [6,26,41,54,57,70,74]
+		self.assertEqual(test1.linesForPoint(point),lines)
 
-	# def test_openLinesForPoint(self):
+		point = [3,1,2]
+		lines = [6,27,45,55]
+		self.assertEqual(test1.linesForPoint(point),lines)
 
+	def test_openLinesForPoint(self):
+		test1 = Board()
+		point = [0,0,0]
+		lines = [0,16,32,48,56,64,72]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
 
+		point = [1,0,0]
+		lines = [0,17,36,49]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+
+		point = [2,1,2]
+		lines = [6,26,41,54,57,70,74]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+
+		point = [3,1,2]
+		lines = [6,27,45,55]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+
+		# now with somewhat blocked board
+		test1.b = self.fourMoveBoard
+		point = [0,0,0]
+		lines = [0,16,32,48,56,64,72]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+		self.assertEqual(test1.openLinesForPoint(1,point,1),lines)
+		lines = []
+		self.assertEqual(test1.openLinesForPoint(1,point,2),lines)
+		self.assertEqual(test1.openLinesForPoint(2,point,0),lines)
+
+		point = [1,0,0]
+		lines = [0,17,36,49]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+
+		point = [2,1,2]
+		lines = [6,26,41,54,57,70,74]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+		self.assertEqual(test1.openLinesForPoint(2,point,0),lines)
+		lines = []
+		self.assertEqual(test1.openLinesForPoint(1,point,2),lines)
+		self.assertEqual(test1.openLinesForPoint(2,point,1),lines)
+
+		point = [3,1,2]
+		lines = [6,27,45,55]
+		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+		lines = [55]
+		self.assertEqual(test1.openLinesForPoint(1,point,1),lines)
+		lines = []
+		self.assertEqual(test1.openLinesForPoint(1,point,2),lines)
+		self.assertEqual(test1.openLinesForPoint(2,point,1),lines)
+		lines = [6,27,45]
+		self.assertEqual(test1.openLinesForPoint(2,point,0),lines)
 
 if __name__ == '__main__':
     unittest.main()

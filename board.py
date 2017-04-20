@@ -430,7 +430,7 @@ class Board:
 		blocked = False
 
 		for l in range(76):
-			points = self.lineToPoints(line)
+			points = self.lineToPoints(l)
 			openPoints = []
 			for i in range(4):
 				v = self.b[points[i][0]][points[i][1]][points[i][2]]
@@ -447,6 +447,7 @@ class Board:
 		"""
 		Returns a list of all the line numbers passing through point p
 		"""
+		return []
 
 	def openLinesForPoint(self, n, p, num):
 		"""
@@ -454,7 +455,22 @@ class Board:
 		point p, with no non n moves and num moves by player n
 		"""
 
-
+		otherN = self.otherNumber(n)
+		lines = self.linesForPoint(p)
+		openLines = []
+		for l in lines:
+			blocked = False
+			values = self.lineToValues(l)
+			p1 = 0
+			for v in values:
+				if (v == otherN):
+					blocked = True
+					break
+				if (v == n):
+					p1 += 1
+			if (p1 >= num and not blocked):
+				openLines += [l]
+		return openLines
 
 
 
