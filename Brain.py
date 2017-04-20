@@ -21,13 +21,11 @@ class Brain:
 		bestPoint = [0,0,0]
 		return bestPoint
 
-
 	def lookAhead(self, p):
 		"""
 		Tries moving for player n at point p then rechecks board
 		Returns hypothetical new AI with updated info
 		"""
-
 
 	def forceToFinish(self):
 		"""

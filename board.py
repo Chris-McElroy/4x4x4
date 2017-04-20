@@ -329,12 +329,18 @@ class Board:
 
 		line = -1
 
+		# make sure points are valid
+		for p in p1,p2:
+			for v in p:
+				if (v < 0 or v > 3):
+					return line
+
 		# see if they have the same x
 		if (p1[0] == p2[0]):
 			# see if they have the same y
 			if (p1[1] == p2[1]):
 				# must be vertical
-				if (p1[2] != p1[2]):
+				if (p1[2] != p2[2]):
 					line = 32 + 4*p1[0] + p1[1]
 			# see if they have the same z
 			elif (p1[2] == p2[2]):

@@ -15,13 +15,16 @@ class BoardTest(unittest.TestCase):
 	fourMoveBoard[0][0][0] = 1
 	fourMoveBoard[3][2][1] = 1
 	fourMoveBoard[1][2][3] = 2
-	fourMoveBoard[0][1][2] = 2
+	fourMoveBoard[0][2][1] = 2
 	# line boards
 	oneLineXBoard = [[[1 if (i%4 == 0 and j%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 	oneLineYBoard = [[[1 if (i%4 == 0 and k%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 	oneLineZBoard = [[[1 if (k%4 == 0 and j%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 	# plane is z = 0
 	onePlaneBoard = [[[1 if (i%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
+	# forcing boards
+	twoMoveBoard = [[[1 if (k%4 == 0 and j%4 == 0 and i % 2 != 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
+	forcingBoard = [[[1 if (i%2 != 2) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 
 	def test_clearBoard(self):
 		test1 = Board()
@@ -30,10 +33,8 @@ class BoardTest(unittest.TestCase):
 		self.assertEqual(test1.clearBoard(), 0)
 		self.assertEqual(test1.b,self.openBoard)
 
-		test1.move(1,0,0,0)
-		test1.move(2,0,0,1)
-		test1.move(2,0,0,2)
-		self.assertEqual(test1.clearBoard(), 3)
+		test1.b = self.fourMoveBoard
+		self.assertEqual(test1.clearBoard(), 4)
 		self.assertEqual(test1.b,self.openBoard)
 
 	def test_openPoints(self):
@@ -98,7 +99,7 @@ class BoardTest(unittest.TestCase):
 		self.assertEqual(test1.b,test2)
 
 		self.assertEqual(test1.move(1,0,0,0),True)
-		self.assertEqual(test1.move(2,0,1,2),True)
+		self.assertEqual(test1.move(2,0,2,1),True)
 		self.assertEqual(test1.move(2,1,2,3),True)
 		self.assertEqual(test1.move(1,3,2,1),True)
 		self.assertEqual(test1.move(2,0,0,0),False)
@@ -175,11 +176,96 @@ class BoardTest(unittest.TestCase):
 		line = 73
 		self.assertEqual(test1.lineToPoints(line),points)
 
-	# def test_pointsToLine(self):
+	def test_pointsToLine(self):
+		test1 = Board()
+		point1 = [0,0,0]
+		point2 = [0,0,0]
+		line = -1
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
 
-	# def test_lineToValues(self):
+		point2 = [0,0,4]
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
 
-	# def test_findForces(self):
+		point2 = [1,1,2]
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [3,2,3]
+		point2 = [1,2,3]
+		line = 0 + 11
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [3,3,2]
+		point2 = [3,1,2]
+		line = 16 + 11
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [2,3,3]
+		point2 = [2,3,1]
+		line = 32 + 11
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [1,1,1]
+		point2 = [1,3,3]
+		line = 48 + 1
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [1,1,1]
+		point2 = [3,1,3]
+		line = 56 + 1
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [1,1,1]
+		point2 = [3,3,1]
+		line = 64 + 1
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+		point1 = [1,1,2]
+		point2 = [3,3,0]
+		line = 72 + 1
+		self.assertEqual(test1.pointsToLine(point1,point2),line)
+
+	def test_lineToValues(self):
+		test1 = Board()
+		test1.b = self.oneMoveBoard
+		values = [1,0,0,0]
+
+		self.assertEqual(test1.lineToValues(0),values)
+		self.assertEqual(test1.lineToValues(16),values)
+		self.assertEqual(test1.lineToValues(32),values)
+		self.assertEqual(test1.lineToValues(48),values)
+		self.assertEqual(test1.lineToValues(56),values)
+		self.assertEqual(test1.lineToValues(64),values)
+		self.assertEqual(test1.lineToValues(72),values)
+
+		test1.b = self.fourMoveBoard
+		self.assertEqual(test1.lineToValues(0),values)
+
+		values = [2,0,0,1]
+		self.assertEqual(test1.lineToValues(9),values)
+
+		values = [0,0,0,0]
+		self.assertEqual(test1.lineToValues(49),values)
+
+		values = [0,0,2,0]
+		self.assertEqual(test1.lineToValues(29),values)
+
+	def test_findForces(self):
+		test1 = Board()
+		pairs = []
+		self.assertEqual(test1.findForces(),pairs)
+
+		test1.b = self.twoMoveBoard
+		pairs = [[0,0,0],[0,0,2]]
+		self.assertEqual(test1.findForces(),pairs)
+
+		test1.b = self.fourMoveBoard
+		pairs = [[1,2,1],[2,2,1]]
+		self.assertEqual(test1.findForces(),pairs)
+
+		#test1.b = self.forcingBoard
+		#pairs = [[1,2,1],[2,2,1]]
+
+
 
 	# def test_linesForPoint(self):
 
