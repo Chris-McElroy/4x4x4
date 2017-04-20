@@ -145,8 +145,35 @@ class BoardTest(unittest.TestCase):
 		lines = [0,4,8,12]+range(16,20)+[64]+[68]
 		self.assertEqual(test1.findLines(1,4),lines)
 
+	def test_lineToPoints(self):
+		test1 = Board()
+		points = [[i,2,3] for i in range(4)]
+		line = 11
+		self.assertEqual(test1.lineToPoints(line),points)
 
-	# def test_lineToPoints(self):
+		points = [[3,i,2] for i in range(4)]
+		line = 11+16
+		self.assertEqual(test1.lineToPoints(line),points)
+
+		points = [[2,3,i] for i in range(4)]
+		line = 11+32
+		self.assertEqual(test1.lineToPoints(line),points)
+
+		points = [[1,i,i] for i in range(4)]
+		line = 1+48
+		self.assertEqual(test1.lineToPoints(line),points)
+
+		points = [[i,1,i] for i in range(4)]
+		line = 1+56
+		self.assertEqual(test1.lineToPoints(line),points)
+
+		points = [[i,i,1] for i in range(4)]
+		line = 1+64
+		self.assertEqual(test1.lineToPoints(line),points)
+
+		points = [[i,i,3-i] for i in range(4)]
+		line = 73
+		self.assertEqual(test1.lineToPoints(line),points)
 
 	# def test_pointsToLine(self):
 
