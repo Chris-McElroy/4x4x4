@@ -67,7 +67,7 @@ class Board:
 			return False
 
 	# Find lines
-	def findLines(self,n,num):
+	def findLines(self, n,num):
 		""" 
 		Checks all lines on the board, returns the line number
 		of all lines for which player n has at least num points,
@@ -164,9 +164,6 @@ class Board:
 			p2 = 0
 			for j in range(4):
 				current = self.b[i][j][j]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
 					p2 += 1
 			if (p1 >= num and p2 == 0):
 				lines += [48 + i]
@@ -471,7 +468,6 @@ class Board:
 			if (p1 >= num and not blocked):
 				openLines += [l]
 		return openLines
-
 
 
 
