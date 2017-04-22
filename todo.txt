@@ -31,3 +31,10 @@ DisplayTest:
 Master:
 
 MasterTest:
+
+
+
+tryTo = Master()
+player1 = Brain(tryTo.b,1)
+player2 = Brain(tryTo.b,1)
+tryTo.playGame([player1,player2],1)

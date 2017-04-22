@@ -56,12 +56,12 @@ class Board:
 						p2 += 1
 		return [p1,p2]
 
-	def move(self,n,x,y,z):
+	def move(self,n,p):
 		""" moves player n at x,y,z, returns false if blocked """
 
-		current = self.b[x][y][z]
+		current = self.b[p[0]][p[1]][p[2]]
 		if (current == 0):
-			self.b[x][y][z] = n
+			self.b[p[0]][p[1]][p[2]] = n
 			return True
 		else:
 			return False
@@ -164,7 +164,7 @@ class Board:
 			p2 = 0
 			for j in range(4):
 				current = self.b[i][j][j]
-					p2 += 1
+				p2 += 1
 			if (p1 >= num and p2 == 0):
 				lines += [48 + i]
 

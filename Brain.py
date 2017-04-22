@@ -7,18 +7,19 @@ class Brain:
 
 	def __init__(self, currentBoard, playerNumber):
 		""" Stores board and player info for easy access """
-		self.board = currentBoard # Board object, not array
-		self.n = currentNumber
-		self.o = otherNumber(n)
+		self.b = currentBoard # Board object, not array
+		self.n = playerNumber
+		self.o = self.b.otherNumber(self.n)
 		self.moves = self.b.openPoints()
 		self.pairs = self.b.findForces(self.n)
 		self.lines = self.b.findLines(self.n,0)
 
-	def bestMove(self):
+	def move(self,board,n):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
-		bestPoint = [0,0,0]
+		open
+		bestPoint = self.b.openPoints()[0]
 		return bestPoint
 
 	def lookAhead(self, p):

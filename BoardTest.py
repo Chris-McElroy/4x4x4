@@ -42,9 +42,9 @@ class BoardTest(unittest.TestCase):
 		test2 = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
 		self.assertEqual(test1.openPoints(),test2)
 
-		test1.move(1,0,0,0)
-		test1.move(2,0,0,1)
-		test1.move(2,1,0,2)
+		test1.move(1,[0,0,0])
+		test1.move(2,[0,0,1])
+		test1.move(2,[1,0,2])
 
 		test2 = test2[2:18] + test2[19:]
 		self.assertEqual(test1.openPoints(),test2)
@@ -55,18 +55,18 @@ class BoardTest(unittest.TestCase):
 		test2 = []
 		self.assertEqual(test1.myPoints(n),test2)
 
-		test1.move(1,0,0,0)
+		test1.move(1,[0,0,0])
 		test2 += [[0,0,0]]
 		self.assertEqual(test1.myPoints(n),test2)
 
-		test1.move(2,0,0,1)
+		test1.move(2,[0,0,1])
 		self.assertEqual(test1.myPoints(n),test2)
 
-		test1.move(1,1,2,3)
+		test1.move(1,[1,2,3])
 		test2 += [[1,2,3]]
 		self.assertEqual(test1.myPoints(n),test2)
 
-		test1.move(1,0,0,1)
+		test1.move(1,[0,0,1])
 		self.assertEqual(test1.myPoints(n),test2)
 
 	def test_otherNumber(self):
@@ -81,16 +81,16 @@ class BoardTest(unittest.TestCase):
 		test1 = Board()
 		self.assertEqual(test1.numMoves(n),[0,0])
 
-		test1.move(1,0,0,0)
+		test1.move(1,[0,0,0])
 		self.assertEqual(test1.numMoves(n),[1,0])
 
-		test1.move(2,0,0,1)
+		test1.move(2,[0,0,1])
 		self.assertEqual(test1.numMoves(n),[1,1])
 
-		test1.move(2,1,1,2)
+		test1.move(2,[1,1,2])
 		self.assertEqual(test1.numMoves(n),[1,2])
 
-		test1.move(1,0,0,1)
+		test1.move(1,[0,0,1])
 		self.assertEqual(test1.numMoves(n),[1,2])
 
 	def test_move(self):
@@ -98,12 +98,12 @@ class BoardTest(unittest.TestCase):
 		test2 = self.openBoard
 		self.assertEqual(test1.b,test2)
 
-		self.assertEqual(test1.move(1,0,0,0),True)
-		self.assertEqual(test1.move(2,0,2,1),True)
-		self.assertEqual(test1.move(2,1,2,3),True)
-		self.assertEqual(test1.move(1,3,2,1),True)
-		self.assertEqual(test1.move(2,0,0,0),False)
-		self.assertEqual(test1.move(2,1,2,3),False)
+		self.assertEqual(test1.move(1,[0,0,0]),True)
+		self.assertEqual(test1.move(2,[0,2,1]),True)
+		self.assertEqual(test1.move(2,[1,2,3]),True)
+		self.assertEqual(test1.move(1,[3,2,1]),True)
+		self.assertEqual(test1.move(2,[0,0,0]),False)
+		self.assertEqual(test1.move(2,[1,2,3]),False)
 
 		test2 = self.fourMoveBoard
 		self.assertEqual(test1.b,test2)
