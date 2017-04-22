@@ -13,35 +13,62 @@ class Brain:
 		self.moves = self.b.openPoints()
 		self.pairs = self.b.findForces(self.n)
 		self.lines = self.b.findLines(self.n,0)
+		self.decided = False
+		self.assured = False
+
+		self.undecided = [-1, -1, -1]
 		self.ply = 4
 
 	def move(self,board,n):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
-		openPoints = self.b.openPoints()
-		bestPoint = openPoints[0]
+
+		self.updateAll(board,n)
+		# other = Brain(self.b,self.o)
+
+		bestPoint = self.moves[0]
 		return bestPoint
 
-		# all offense first
-		for p in openPoints:
-			if (self.checkWins(p)):
-				return p
+		# check for four in a row on both sides
+		move0 = self.assuredMove()
+		if self.decided:
+			return move0
 
-		forceMove = self.forceToFinish()
-		if (forceMove[0] != -1):
-			return forceMove
+		other.forceToFinish()
+		if other.decided:
+			self.moves = self.guardForces()
 
-		# then defense
-		
+		move1 = self.lookAhead()
+		if self.decided: # checks for a strong lookahead
+			return move1
 
-		for p in openPoints:
-			aheadMove = self.lookAhead(p,self.ply)
-			if (aheadMove[0] != -1):
-				return aheadMove
+		other.lookAhead(other.ply)
+		if other.decided: # checks for their strong lookahead
+			self.moves = self.guardLookAhead()
 
+		move2 = self.lookAhead() # casual lookahead
+		return move2
 
+	def assuredMove(self):
+		other = Brain(self.b,self.o)
+		self.decided = False
+		other.decided = False
 
+		# check for four in a row on both sides
+		move1 = self.fourInARow()
+		if self.decided:
+			return move1
+
+		move2 = other.fourInARow()
+		if other.decided:
+			return move2
+
+		move3 = self.forceToFinish()
+		if self.decided:
+			return move3
+
+		return self.undecided
 
 
 	def lookAhead(self, p):
@@ -70,10 +97,19 @@ class Brain:
 		myNum is position chosen by player n (either 0 or 1)
 		"""
 
-	def updateAll(self):
+	def updateAll(self, board, n):
 		"""
 		Updates all pairs, moves and lines for the current board
 		"""
+		self.b = board # Board object, not array
+		self.n = n
+		self.o = self.b.otherNumber(self.n)
+		self.moves = self.b.openPoints()
+		self.pairs = self.b.findForces(self.n)
+		self.lines = self.b.findLines(self.n,0)
+		self.decided = False
+		self.assured = False
+
 
 	def updateWinsForPoint(self, p):
 		"""

@@ -49,7 +49,7 @@ class Master:
 				self.d.updateBoard(self.b)
 				self.d.displayShittyBoard()
 
-			if (checks > 1):
+			if (checks > 1 and continueGame):
 				continueGame = False
 
 				print "Player " + str(n) + " Wins!"

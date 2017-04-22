@@ -8,14 +8,16 @@ class Display:
 
 	def displayShittyBoard(self):
 		""" displays the board reallllyy shitty """
-		for l in range(16):
-			values = self.b.lineToValues(l)
-			lineString = ""
-			for v in values:
-				lineString += self.valueToMark(v) + " "
-			print lineString
-			if (l%4 == 3):
-				print ""
+		for i in range(4):
+			for j in range(4):
+				l = j*4+i
+				values = self.b.lineToValues(l)
+				lineString = ""
+				for v in values:
+					lineString += self.valueToMark(v) + " "
+				print lineString
+				if (j%4 == 3):
+					print ""
 
 	def valueToMark(self,v):
 		""" converts value to a mark """
