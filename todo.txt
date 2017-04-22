@@ -4,7 +4,7 @@ myPoints
 linesForPoint
 
 Brain:
-bestMove
+move
 lookAhead
 forceToFinish
 updateForPoint
@@ -14,7 +14,7 @@ checkWinsForPoint
 checkWins
 
 BrainTest:
-test_bestMove
+test_move
 test_lookAhead
 test_forceToFinish
 test_updateForPoint
@@ -26,11 +26,7 @@ test_checkWins
 Display:
 Figure out how we want display to look
 
-DisplayTest:
-
 Master:
-
-MasterTest:
 
 
 

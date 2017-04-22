@@ -13,24 +13,49 @@ class Brain:
 		self.moves = self.b.openPoints()
 		self.pairs = self.b.findForces(self.n)
 		self.lines = self.b.findLines(self.n,0)
+		self.ply = 4
 
 	def move(self,board,n):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
-		bestPoint = self.b.openPoints()[0]
+		openPoints = self.b.openPoints()
+		bestPoint = openPoints[0]
 		return bestPoint
+
+		# all offense first
+		for p in openPoints:
+			if (self.checkWins(p)):
+				return p
+
+		forceMove = self.forceToFinish()
+		if (forceMove[0] != -1):
+			return forceMove
+
+		# then defense
+		
+
+		for p in openPoints:
+			aheadMove = self.lookAhead(p,self.ply)
+			if (aheadMove[0] != -1):
+				return aheadMove
+
+
+
+
 
 	def lookAhead(self, p):
 		"""
 		Tries moving for player n at point p then rechecks board
-		Returns hypothetical new AI with updated info
+		Returns the point used successfully if player n wins,
+		and p = [-1,-1,-1] if the other player wins or nothing happens
 		"""
 
 	def forceToFinish(self):
 		"""
 		Forces the other player until there are no forces left, or someone wins
-		Returns True if player n wins, False if the other player wins or nothing happens
+		Returns the point used successfully if player n wins,
+		and p = [-1,-1,-1] if the other player wins or nothing happens
 		"""
 
 	def updateForPoint(self, p):
@@ -50,7 +75,7 @@ class Brain:
 		Updates all pairs, moves and lines for the current board
 		"""
 
-	def checkWinsForPoint(self, p):
+	def updateWinsForPoint(self, p):
 		"""
 		Checks whether a just-filled point caused any wins
 		"""
