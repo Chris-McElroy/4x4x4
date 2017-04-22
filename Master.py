@@ -40,10 +40,19 @@ class Master:
 			wins = len(self.b.findLines(n,4))
 			checks = len(self.b.findLines(n,3))
 
-			if (wins > 0 or checks > 1):
+			if (wins > 0):
 				continueGame = False
 
 				print "Player " + str(n) + " Wins!"
+				print "They got 4 in a row!"
+				self.d.updateBoard(self.b)
+				self.d.displayShittyBoard()
+
+			if (checks > 1):
+				continueGame = False
+
+				print "Player " + str(n) + " Wins!"
+				print "They got multiple checks!"
 				self.d.updateBoard(self.b)
 				self.d.displayShittyBoard()
 
