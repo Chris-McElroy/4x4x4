@@ -32,6 +32,8 @@ class Master:
 			self.d.updateBoard(self.b)
 			self.d.displayShittyBoard()
 
+			time.sleep(1)
+
 			nextMove = players[n-1].move(self.b, n)
 			self.b.move(n,nextMove)
 
@@ -49,8 +51,6 @@ class Master:
 				print "Check! Player " + str(self.b.otherNumber(n)) + " must respond! \n"
 			#n = self.b.otherNumber(n)
 			n = 1 if (n == 2) else 2
-
-			time.sleep(1)
 
 
 		print "Game Over \n"
