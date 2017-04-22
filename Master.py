@@ -1,6 +1,7 @@
 from Board import *
 from Display import *
 from Brain import *
+from Human import *
 import time
 
 class Master:
@@ -57,7 +58,7 @@ class Master:
 				self.d.displayShittyBoard()
 
 			if (checks == 1):
-				print "Check! Player " + str(self.b.otherNumber(n)) + " must respond! \n"
+				print "\nCheck! Player " + str(self.b.otherNumber(n)) + " must respond!"
 			#n = self.b.otherNumber(n)
 			n = 1 if (n == 2) else 2
 

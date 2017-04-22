@@ -18,7 +18,6 @@ class Brain:
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
-		open
 		bestPoint = self.b.openPoints()[0]
 		return bestPoint
 
