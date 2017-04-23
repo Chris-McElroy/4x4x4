@@ -37,7 +37,7 @@ class Master:
 
 			nextMove = players[n-1].move(self.b, n)
 			self.b.move(n,nextMove)
-
+d
 			wins = len(self.b.findLines(n,4))
 			checks = len(self.b.findLines(n,3))
 
