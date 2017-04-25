@@ -18,6 +18,13 @@ class Board:
 		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 		return sum(currentMoves)
 
+	def copyBoard(self, b):
+		""" copies the given board object into self.b """
+		for x in range(4):
+			for y in range(4):
+				for z in range(4):
+					self.b[x][y][z] = b.b[x][y][z]
+
 	def openPoints(self):
 		"""
 		Return a list of all open points on the board
@@ -57,7 +64,7 @@ class Board:
 		return [p1,p2]
 
 	def move(self,n,p):
-		""" moves player n at x,y,z, returns false if blocked """
+		""" moves player n at point p, returns false if blocked """
 
 		current = self.b[p[0]][p[1]][p[2]]
 		if (current == 0):
@@ -426,17 +433,20 @@ class Board:
 		pairs = []
 		blocked = False
 
-		for l in range(76):
+		lines = self.findLines(n,2)
+
+		"made it here"
+		for l in lines:
 			points = self.lineToPoints(l)
 			openPoints = []
 			for i in range(4):
 				v = self.b[points[i][0]][points[i][1]][points[i][2]]
 				if (v == 0):
 					openPoints += [i]
-				elif (v != n):
-					blocked = True
-					break
-			if (not blocked and len(openPoints) == 2):
+
+			print "openpoints"
+			print openPoints
+			if len(openPoints) == 2:
 				pairs += [[points[openPoints[0]], points[openPoints[1]]]]
 		return pairs
 

@@ -1,5 +1,5 @@
 from Board import *
-import Random
+import random
 
 class Brain:
 	"""
@@ -25,8 +25,8 @@ class Brain:
 
 		self.updateAll(board,n)
 
-		bestPoint = self.moves[0]
-		return bestPoint
+		#bestPoint = self.moves[0]
+		#return bestPoint
 
 		other = Brain(self.b,self.o)
 
@@ -35,7 +35,7 @@ class Brain:
 		if self.decided:
 			return move
 
-		other.lookAhead(other.ply)
+		other.lookAhead()
 		if other.assured: # checks for their strong lookahead
 			self.moves = self.guardLookAhead()
 
@@ -49,6 +49,8 @@ class Brain:
 		"""
 
 		if (len(moves) > 0):
+			print "Considering multiple moves:"
+			print moves
 			return random.choice(moves)
 		return self.undecided
 
@@ -58,7 +60,8 @@ class Brain:
 
 		# check for four in a row on both sides
 		move0 = self.fourInARow()
-		if self.decided:
+		if self.assured:
+			print "I have the win\n"
 			return move0
 
 		move1 = other.fourInARow()
@@ -66,15 +69,18 @@ class Brain:
 			return move1
 
 		move2 = self.checkCheckmates()
-		if self.decided:
+		if self.assured:
+			print "I have mate"
 			return move2
 
 		move3 = self.forceToFinish()
-		if self.decided:
+		if self.assured:
+			print "I have the force"
 			return move3
 
 		move4 = self.lookAhead()
-		if self.decided: # checks for a strong lookahead
+		if self.assured: # checks for a strong lookahead
+			print "I have the win."
 			return move4
 
 		return self.undecided
@@ -83,29 +89,35 @@ class Brain:
 		""" check if there's anywhere self could go to get four in a row """
 
 		winningMoves = []
+		lines = self.b.findLines(self.n,3)
 
-		for p in self.moves:
-			lines = self.b.openLinesForPoint(self.n,p,3)
-			if (len(lines) > 0):
-				winningMoves += [p]
-		if (len(winningMoves) > 0):
+		if (len(lines) > 0):
 			self.assured = True
 			self.decided = True
+			for l in lines:
+				values = self.b.lineToValues(l)
+				for i in range(4): # double counts double 4-in-a-rows bc hell yeah
+					if values[i] == 0:
+						move = self.b.lineToPoints(l)[i]
+						winningMoves += [move]
+
 		return self.chooseMove(winningMoves)
 
 	def checkCheckmates(self):
 		""" checks for any checkmate moves """
 
 		pairs = self.b.findForces(self.n)
-		points = []
+		moves = []
 		winningMoves = []
-		for p in pairs:
-			if p in points:
-				if p not in winningMoves:
-					winningMoves += p
-			else:
-				points += p
-
+		for points in pairs:
+			for p in points:
+				if p in moves:
+					if p not in winningMoves:
+						winningMoves += [p]
+						self.assured = True
+						self.decided = True
+				else:
+					moves += [p]
 		return self.chooseMove(winningMoves)
 
 	def forceToFinish(self):
@@ -131,34 +143,43 @@ class Brain:
 
 		for pairN in range(lenPairs):
 			for i in [0,1]:
-				newAI = Brain(self.b,self.n)
-				newAI.updateForForce(pair[pairN],i)
-				if newAI1.assured:
+				newBoard = Board()
+				newAI = Brain(newBoard,self.n)
+				newAI.b.copyBoard(self.b)
+				newAI.updateForForce(pairs[pairN],i)
+				if newAI.assured:
 					self.assured = True
 					self.decided = True
-					moves += [pair[i]]
+					moves += [pairs[pairN][i]]
 				else:
-					futureMoves = newAI.recursiveForceToFinish(pairs[:pairN]+pairs[pairN+1:])
+					newPairs = newAI.b.findForces(self.n)
+					futureMoves = newAI.recursiveForceToFinish(newPairs)
 					if len(futureMoves) > 0:
 						self.assured = True
 						self.decided = True
-						moves += [pair[i]]]
+						moves += [pairs[pairN][i]]
 
 		return moves
 
-	def lookAhead(self, p):
+	def lookAhead(self):
 		"""
 		Tries moving for player n at point p then rechecks board
 		Returns the point used successfully if player n wins,
 		and p = [-1,-1,-1] if the other player wins or nothing happens
 		"""
 
+		numMoves = self.b.numMoves(self.n)[0]
+		moves = [[0,0,0],[0,3,0],[3,0,0],[2,0,1],[3,3,3],[3,3,3]]
+		return moves[numMoves]
+
 		currentPly = self.ply
 		currentMoves = self.moves
 
 		while (currentPly > 0):
+			return [0,1,3]
 
 		if self.assured:
+			return [0,1,3]
 
 	def updateForPoint(self, p):
 		"""
@@ -200,7 +221,7 @@ class Brain:
 			self.decided = True
 
 		wins = self.b.openLinesForPoint(self.o,p,4)
-		if self.checkCheckmates() not = self.undecided and len(wins) == 0:
+		if self.checkCheckmates() != self.undecided and len(wins) == 0:
 			self.assured = True
 			self.decided = True
 
