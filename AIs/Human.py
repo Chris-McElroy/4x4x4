@@ -10,6 +10,13 @@ class Human:
 		The main function for this class.  Returns the point the person wants to move in.
 		"""
 
+		self.n = n
+		numMoves = board.numMoves(self.n)[0]
+
+		if numMoves < 3:
+			moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
+			return moves[numMoves]
+		
 		goodInput = False
 
 		while(not goodInput):

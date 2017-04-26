@@ -35,7 +35,7 @@ class Master:
 			self.d.updateBoard(self.b)
 
 			i = 0
-			while i < 10:
+			while i < 20:
 				self.d.displayBoard()
 				pygame.time.wait(10)
 				i += 1 # WHOOOPS FORGOT THIS
@@ -119,7 +119,7 @@ class Master:
 
 tryTo = Master()
 player1 = Brain(tryTo.b,1)
-player2 = Human(tryTo.b,1)
+player2 = Human(tryTo.b,2)
 tryTo.playGame([player1,player2],1)
 
 # Human moves to let three move force happen:

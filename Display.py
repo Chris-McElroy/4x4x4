@@ -20,10 +20,10 @@ class Display:
 		""" prepares to display board """
 
 		pygame.init()
-		display = (800,600)
+		display = (800, 600)
 		pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-		gluPerspective(8, (float(display[0])/float(display[1])), 0.1, 200)
-		glTranslatef(0.0,0, -100)
+		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
+		glTranslatef(0.0,0, -200)
 		glRotatef(20,.3,.5,0)
 
 	def displayShittyBoard(self):
@@ -65,7 +65,7 @@ class Display:
 		# janky old positions
 		# positions = [[1.2*(-1.5+i)+.2*j,1.2*3*(-1.5+j),1.2*(-1.5+k)-2.7*j**(.5)] for i in range(4) for j in range(4) for k in range(4)]
 
-		positions = [[2*(-1.5+i),2*1.5*(-1.5+j),2*(-1.5+k)] for i in range(4) for j in range(4) for k in range(4)]
+		positions = [[2.7*(-1.5+i),2*1.5*(-1.5+j),2.7*(-1.5+k)] for i in range(4) for j in range(4) for k in range(4)]
 		for i in range(64):
 			p = points[i]
 			pos = positions[i]
@@ -118,7 +118,7 @@ class Display:
 		self.b = board
 
 	def cube(self, p, n):
-		d = .25
+		d = .4
 		verticies = [(p[0]+i,p[1]+j,p[2]+k) for i in [-d,d] for j in [-d,d] for k in [-d,d]]
 		edges = ((0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),(4,5),(4,6),(5,7),(6,7))
 		surfaces = ((0,1,2,3),(0,1,5,4),(0,2,6,4),(7,6,5,4),(7,6,2,3),(7,5,1,3))
