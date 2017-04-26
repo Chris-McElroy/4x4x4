@@ -1,7 +1,7 @@
 from Board import *
 from Display import *
-from Brain import *
-from Human import *
+from AIs.Brain import *
+from AIs.Human import *
 import time
 
 class Master:
