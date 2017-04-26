@@ -68,12 +68,12 @@ class Brain:
 
 		move2 = self.checkCheckmates()
 		if self.assured:
-			print "I have mate"
+			print "I have mate\n"
 			return move2
 
 		move3 = self.forceToFinish()
 		if self.assured:
-			print "I have the force"
+			print "I have the force\n"
 			return move3
 
 		move4 = self.lookAhead()

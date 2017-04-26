@@ -3,6 +3,7 @@ from Display import *
 from AIs.Brain import *
 from AIs.Human import *
 import time
+import sys
 
 class Master:
 	""" controls everything going on """
@@ -27,6 +28,7 @@ class Master:
 		self.b.clearBoard()
 		self.d.initializeBoard()
 		continueGame = True
+		self.forced = False
 		self.n = p1
 
 		while (continueGame):
@@ -88,7 +90,7 @@ class Master:
 				if self.b.pointToValue(point) == 0:
 					self.d.checkPoint(point)
 					checkString = self.pointToString(point)
-					print checkString
+					print "Move at: " + checkString
 					self.forced = True
 			# self.d.title("Check! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!				")
 
@@ -117,7 +119,6 @@ class Master:
 				checkMates = True
 
 		return checkMate
-
 
 tryTo = Master()
 player1 = Brain(tryTo.b,1)

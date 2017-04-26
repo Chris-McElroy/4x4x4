@@ -32,7 +32,6 @@ class Display:
 		glTranslatef(0.0,0, -200)
 		glRotatef(20,.3,.5,0)
 
-
 	def displayShittyBoard(self):
 		""" displays the board reallllyy shitty """
 		for i in range(4):
