@@ -49,8 +49,6 @@ class Brain:
 		"""
 
 		if (len(moves) > 0):
-			print "Considering multiple moves:"
-			print moves
 			return random.choice(moves)
 		return self.undecided
 
@@ -169,7 +167,7 @@ class Brain:
 		"""
 
 		numMoves = self.b.numMoves(self.n)[0]
-		moves = [[0,0,0],[0,3,0],[3,0,0],[2,0,1],[3,3,3],[3,3,3]]
+		moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,1],[3,3,3],[3,3,3]]
 		return moves[numMoves]
 
 		currentPly = self.ply

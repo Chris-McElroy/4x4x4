@@ -92,7 +92,7 @@ class Board:
 					p1 += 1
 				elif (v != 0):
 					p2 += 1
-			if (p1 >= num and p2 == 0):
+			if (p1 == num and p2 == 0):
 				lines += [l]
 
 		return lines
@@ -435,7 +435,6 @@ class Board:
 
 		lines = self.findLines(n,2)
 
-		"made it here"
 		for l in lines:
 			points = self.lineToPoints(l)
 			openPoints = []
@@ -444,8 +443,6 @@ class Board:
 				if (v == 0):
 					openPoints += [i]
 
-			print "openpoints"
-			print openPoints
 			if len(openPoints) == 2:
 				pairs += [[points[openPoints[0]], points[openPoints[1]]]]
 		return pairs
@@ -478,6 +475,10 @@ class Board:
 			if (p1 >= num and not blocked):
 				openLines += [l]
 		return openLines
+
+	def pointToValue(self,p):
+		""" convert a single point to a value """
+		return self.b[p[0]][p[1]][p[2]]
 
 
 

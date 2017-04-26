@@ -24,6 +24,7 @@ class Master:
 		"""
 
 		self.b.clearBoard()
+		self.d.initializeBoard()
 		continueGame = True
 		self.n = p1
 
@@ -32,9 +33,12 @@ class Master:
 			print "Player " + str(self.n) + "'s Turn:"
 
 			self.d.updateBoard(self.b)
-			self.d.displayShittyBoard()
 
-			time.sleep(1)
+			i = 0
+			while i < 10:
+				self.d.displayBoard()
+				pygame.time.wait(10)
+				i += 1 # WHOOOPS FORGOT THIS
 
 			nextMove = players[self.n-1].move(self.b, self.n)
 			noProblem = self.b.move(self.n,nextMove)
@@ -59,7 +63,7 @@ class Master:
 
 		wins = len(self.b.openLinesForPoint(self.n,move,4))
 		checkMate = self.checkCheckmates(move)
-		checks = len(self.b.findLines(n,3))
+		checks = self.b.findLines(self.n,3)
 
 		if wins > 0:
 			continueGame = False
@@ -77,10 +81,27 @@ class Master:
 			self.d.updateBoard(self.b)
 			self.d.displayShittyBoard()
 
-		if (checks > 0 and continueGame):
-			print "\nCheck! Player " + str(self.b.otherNumber(self.n)) + " must respond!"
+		if (len(checks) > 0 and continueGame):
+			checkPoints = self.b.lineToPoints(checks[0])
+			checkString = ""
+			for point in checkPoints:
+				if self.b.pointToValue(point) == 0:
+					checkString = self.pointToString(point)
+			if checkString == "":
+				print "Somehow checkString never got assigned"
+				print checkPoints
+				print checks
+			else:
+				print "\nCheck! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!"
 
 		return continueGame
+
+	def pointToString(self, p):
+		""" turns a point into a string of numbers that should be inputed """
+		string = ""
+		for n in p:
+			string += str(1+n)
+		return string
 
 	def checkCheckmates(self,move):
 		""" check board for checkmates after a move """
@@ -96,6 +117,15 @@ class Master:
 		return checkMate
 
 
+tryTo = Master()
+player1 = Brain(tryTo.b,1)
+player2 = Human(tryTo.b,1)
+tryTo.playGame([player1,player2],1)
+
+# Human moves to let three move force happen:
+# 232
+# 322
+# 423
 
 
 

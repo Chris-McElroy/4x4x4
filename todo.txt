@@ -30,12 +30,8 @@ Master:
 
 
 
-tryTo = Master()
-player1 = Brain(tryTo.b,1)
-player2 = Human(tryTo.b,1)
-tryTo.playGame([player1,player2],1)
-212
+Human moves to let three move force happen:
+232
 322
-422
-
+423
 
