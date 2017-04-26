@@ -16,15 +16,22 @@ class Display:
 		self.dir = 1 # direction to view board, can be 1-6
 		self.b = board
 
+		self.check_current = False
+		self.check_n = 0
+		self.check_p = [0,0,0]
+
 	def initializeBoard(self):
 		""" prepares to display board """
 
 		pygame.init()
 		display = (800, 600)
 		pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
+		self.title("")
+
 		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
 		glTranslatef(0.0,0, -200)
 		glRotatef(20,.3,.5,0)
+
 
 	def displayShittyBoard(self):
 		""" displays the board reallllyy shitty """
@@ -57,6 +64,10 @@ class Display:
 
 		pygame.display.flip()
 
+	def title(self,string):
+		""" sets the title of the display to be string """
+		pygame.display.set_caption(string)
+
 	def displayPieces(self):
 		""" displays all the pieces on the board """
 
@@ -70,7 +81,27 @@ class Display:
 			p = points[i]
 			pos = positions[i]
 			v = self.b.b[p[0]][p[1]][p[2]]
+
+			if p == self.check_p and self.check_current:
+				self.check_n += 1
+				if self.check_n < 4:
+					v = 3
+				elif self.check_n > 6:
+					self.check_n = 0
+
 			self.cube(pos, v)
+
+	def checkPoint(self,p):
+		""" makes sure to show p later on flashing red """
+		self.check_current = True
+		self.check_n = 0
+		self.check_p = p
+
+	def uncheckPoint(self):
+		""" unshows check once it's forced """
+		self.check_current = False
+		self.check_n = 0
+		self.check_p = [0,0,0]
 
 	def getPoints(self):
 		""" gets the correct points based on the value of self.d """
@@ -130,6 +161,8 @@ class Display:
 			color = (0,1,1)
 		elif n == 0:
 			color = (.2,.2,.2)
+		elif n == 3:
+			color = (1,0,0)
 
 		glBegin(GL_QUADS)
 		glColor3fv(color)

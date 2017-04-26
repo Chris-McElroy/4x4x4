@@ -14,6 +14,7 @@ class Master:
 		self.b = Board()
 		self.d = Display(self.b)
 		self.n = 0
+		self.forced = False
 
 	def playGame(self, players, p1):
 		"""
@@ -29,8 +30,10 @@ class Master:
 		self.n = p1
 
 		while (continueGame):
-
-			print "Player " + str(self.n) + "'s Turn:"
+			titleText = "Player " + str(self.n) + "'s Turn"
+			if self.forced:
+				titleText += " (forced)"
+			self.d.title(titleText)
 
 			self.d.updateBoard(self.b)
 
@@ -52,7 +55,6 @@ class Master:
 			#n = self.b.otherNumber(n)
 			self.n = 1 if (self.n == 2) else 2
 
-
 		print "Game Over \n"
 
 
@@ -67,16 +69,14 @@ class Master:
 
 		if wins > 0:
 			continueGame = False
-			print "Player " + str(self.n) + " Wins!"
-			print "They got 4 in a row!"
+			self.d.title("Player " + str(self.n) + " Wins!\nThey got 4 in a row!")
 
 			self.d.updateBoard(self.b)
 			self.d.displayShittyBoard()
 
 		if checkMate:
 			continueGame = False
-			print "Player " + str(self.n) + " Wins!"
-			print "They got checkmate!"
+			self.d.title("Player " + str(self.n) + " Wins!\nThey got checkmate!")
 
 			self.d.updateBoard(self.b)
 			self.d.displayShittyBoard()
@@ -86,13 +86,15 @@ class Master:
 			checkString = ""
 			for point in checkPoints:
 				if self.b.pointToValue(point) == 0:
+					self.d.checkPoint(point)
 					checkString = self.pointToString(point)
-			if checkString == "":
-				print "Somehow checkString never got assigned"
-				print checkPoints
-				print checks
-			else:
-				print "\nCheck! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!"
+					print checkString
+					self.forced = True
+			# self.d.title("Check! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!				")
+
+		else:
+			self.d.uncheckPoint()
+			self.forced = False
 
 		return continueGame
 
