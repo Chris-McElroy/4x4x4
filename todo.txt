@@ -4,34 +4,16 @@ myPoints
 linesForPoint
 
 Brain:
-move
 lookAhead
-forceToFinish
-updateForPoint
-updateForForce
-updateAll
-checkWinsForPoint
+updateForPoint # not called yet
 checkWins
 
 BrainTest:
-test_move
 test_lookAhead
-test_forceToFinish
-test_updateForPoint
-test_updateForForce
-test_updateAll
-test_checkWinsForPoint
-test_checkWins
 
 Display:
-Figure out how we want display to look
+rotations
+clicking for input
 
 Master:
-
-
-
-Human moves to let three move force happen:
-232
-322
-423
-
+# believe master is done

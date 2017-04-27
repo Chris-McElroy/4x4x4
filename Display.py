@@ -30,7 +30,7 @@ class Display:
 
 		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
 		glTranslatef(0.0,0, -200)
-		glRotatef(20,.3,.5,0)
+		glRotatef(20,.3,.5,0.04)
 
 	def displayShittyBoard(self):
 		""" displays the board reallllyy shitty """

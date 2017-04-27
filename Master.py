@@ -38,7 +38,6 @@ class Master:
 			self.d.title(titleText)
 
 			self.d.updateBoard(self.b)
-
 			i = 0
 			while i < 20:
 				self.d.displayBoard()
@@ -124,13 +123,6 @@ tryTo = Master()
 player1 = Brain(tryTo.b,1)
 player2 = Human(tryTo.b,2)
 tryTo.playGame([player1,player2],1)
-
-# Human moves to let three move force happen:
-# 232
-# 322
-# 423
-
-
 
 
 
