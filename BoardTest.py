@@ -117,10 +117,11 @@ class BoardTest(unittest.TestCase):
 		self.assertEqual(test1.findLines(1,1),lines)
 
 		test1.b = self.onesBoard
-		lines = range(76)
 		self.assertEqual(test1.findLines(1,1),lines)
 		self.assertEqual(test1.findLines(1,2),lines)
 		self.assertEqual(test1.findLines(1,3),lines)
+
+		lines = range(76)
 		self.assertEqual(test1.findLines(1,4),lines)
 
 		test1.b = self.oneLineXBoard
@@ -137,10 +138,12 @@ class BoardTest(unittest.TestCase):
 
 		test1.b = self.oneMoveBoard
 		lines = test1.linesForPoint([0,0,0])
-		self.assertEqual(test1.findLines(1,1),lines)
+		self.assertEqual(test1.findLines(1,1),lines) # will fail without lines for point written
 
 		lines = range(76)
-		self.assertEqual(test1.findLines(1,0),lines)
+		for l in test1.linesForPoint([0,0,0]):
+			lines.remove(l)
+		self.assertEqual(test1.findLines(1,0),lines) # will fail without lines for point written
 
 		test1.b = self.onePlaneBoard
 		lines = [0,4,8,12]+range(16,20)+[64]+[68]

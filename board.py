@@ -435,17 +435,15 @@ class Board:
 		blocked = False
 
 		lines = self.findLines(n,2)
+		openPoints = self.openPoints()
 
 		for l in lines:
+			currentPair = []
 			points = self.lineToPoints(l)
-			openPoints = []
-			for i in range(4):
-				v = self.b[points[i][0]][points[i][1]][points[i][2]]
-				if (v == 0):
-					openPoints += [i]
-
-			if len(openPoints) == 2:
-				pairs += [[points[openPoints[0]], points[openPoints[1]]]]
+			for p in points:
+				if p in openPoints:
+					currentPair += [p]
+			pairs += [currentPair]
 		return pairs
 
 	def linesForPoint(self, p):
