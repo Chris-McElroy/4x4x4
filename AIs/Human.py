@@ -14,7 +14,8 @@ class Human:
 		numMoves = board.numMoves(self.n)[0]
 
 		if numMoves < 3:
-			moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
+			#moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
+			moves = [[1,2,1],[2,2,1],[3,3,1],[1,0,1],[3,3,3],[3,3,3]]
 			return moves[numMoves]
 		
 		goodInput = False

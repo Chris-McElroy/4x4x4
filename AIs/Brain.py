@@ -64,6 +64,7 @@ class Brain:
 
 		move1 = other.fourInARow()
 		if other.assured:
+			self.decided = True
 			return move1
 
 		move2 = self.checkCheckmates()
@@ -79,9 +80,8 @@ class Brain:
 		move4 = self.lookAhead()
 		if self.assured: # checks for a strong lookahead
 			print "I have the win."
-			return move4
-
-		return self.undecided
+		
+		return move4
 
 	def fourInARow(self):
 		""" check if there's anywhere self could go to get four in a row """
@@ -126,11 +126,11 @@ class Brain:
 		"""
 
 		pairs = self.b.findForces(self.n)
-		winningMoves = self.recursiveForceToFinish(pairs)
+		winningMoves = self.recursiveForceToFinish(pairs, 6)
 
 		return self.chooseMove(winningMoves) 
 
-	def recursiveForceToFinish(self, pairs):
+	def recursiveForceToFinish(self, pairs, ply):
 		""" solves force to finish recursively """
 
 		lenPairs = len(pairs)
@@ -146,17 +146,18 @@ class Brain:
 				newAI.b.copyBoard(self.b)
 				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:
-					self.assured = True
-					self.decided = True
 					moves += [pairs[pairN][i]]
-				else:
+				elif ply > 0:
 					newPairs = newAI.b.findForces(self.n)
-					futureMoves = newAI.recursiveForceToFinish(newPairs)
-					if len(futureMoves) > 0:
-						self.assured = True
-						self.decided = True
+					futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1)
+					if futureMoves != []:
 						moves += [pairs[pairN][i]]
+				#elif ply == 0:
+					#print "got to 0"
 
+		if moves != []:
+			self.assured = True
+			self.decided = True
 		return moves
 
 	def lookAhead(self):
@@ -167,7 +168,7 @@ class Brain:
 		"""
 
 		numMoves = self.b.numMoves(self.n)[0]
-		moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,1],[3,3,3],[3,3,3]]
+		moves = [[0,0,0],[0,0,3],[3,0,0],[3,3,3],[3,3,3],[3,3,3]]
 		return moves[numMoves]
 
 		currentPly = self.ply
@@ -218,8 +219,9 @@ class Brain:
 			self.assured = True
 			self.decided = True
 
+		checks = self.b.openLinesForPoint(self.n,p,3)
 		wins = self.b.openLinesForPoint(self.o,p,4)
-		if self.checkCheckmates() != self.undecided and len(wins) == 0:
+		if  len(checks) > 1 and len(wins) == 0:
 			self.assured = True
 			self.decided = True
 

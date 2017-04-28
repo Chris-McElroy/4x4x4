@@ -49,6 +49,7 @@ class Board:
 		Returns the other player's number
 		"""
 
+
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
 		p1 = 0
