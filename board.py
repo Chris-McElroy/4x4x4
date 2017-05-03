@@ -49,7 +49,6 @@ class Board:
 		Returns the other player's number
 		"""
 
-
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
 		p1 = 0
@@ -471,7 +470,7 @@ class Board:
 					break
 				if (v == n):
 					p1 += 1
-			if (p1 >= num and not blocked):
+			if (p1 == num and not blocked):
 				openLines += [l]
 		return openLines
 

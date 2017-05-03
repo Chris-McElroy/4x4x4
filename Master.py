@@ -11,7 +11,6 @@ class Master:
 	#constructor	
 	def __init__(self):
 		""" Creates display and initial menu """
-		# nothing much to do here yet until display is better
 		self.b = Board()
 		self.d = Display(self.b)
 		self.n = 0
@@ -57,7 +56,6 @@ class Master:
 			self.n = 1 if (self.n == 2) else 2
 
 		print "Game Over \n"
-
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """
@@ -123,9 +121,6 @@ tryTo = Master()
 player1 = Brain(tryTo.b,1)
 player2 = Human(tryTo.b,2)
 tryTo.playGame([player1,player2],1)
-
-
-
 
 
 
