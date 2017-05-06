@@ -47,7 +47,7 @@ class Master:
 			noProblem = self.b.move(self.n,nextMove)
 
 			if not noProblem:
-				print "HEY"
+				print "move", nextMove, "failed for player", self.n
 				break
 
 			continueGame = self.checkBoard(nextMove)

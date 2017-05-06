@@ -51,6 +51,14 @@ class Display:
 				lineString += "  "
 			print lineString
 
+	def getMove(self):
+		self.mostRecentClick = [-1,-1,-1]
+		self.checkInputs()
+		if self.mostRecentClick != [-1,-1,-1]:
+			return self.mostRecentClick
+		else:
+			return False
+
 	def checkInputs(self):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:

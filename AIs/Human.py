@@ -4,6 +4,8 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+import time
+
 class Human:
 	""" functions as the player for a real life person """
 
@@ -23,14 +25,15 @@ class Human:
 		# 	#moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
 		# 	moves = [[1,2,1],[2,2,1],[3,2,1],[2,1,2],[3,3,3],[3,3,3]]
 		# 	return moves[numMoves]
+
+
+		move = False
+		while not move:
+			time.sleep(.1)
+			move = display.getMove()
+		return move
 		
 		goodInput = False
-
-		chosenPoint = display.mostRecentClick
-		enter = input("enter 'y' to confirm move")
-		if enter == "y":
-			return chosenPoint
-
 
 		while(not goodInput):
 			chosenPointTogether = input("Where do you want to move?\n(Enter the numbers (from 1-4) together: xyz)\n>>> ")
