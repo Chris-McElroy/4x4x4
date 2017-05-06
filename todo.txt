@@ -9,11 +9,19 @@ updateForPoint # not called yet
 checkWins
 
 BrainTest:
-test_lookAhead
+test_lookAhead # how
 
 Display:
 rotations
-clicking for input
 
 Master:
-# believe master is done
+implement clock timer possibility
+
+Human:
+clicking for input
+add countdown timer to display
+
+
+Timer rules:
+20 min initial block,
+then 10 2 min moves

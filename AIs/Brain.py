@@ -18,7 +18,7 @@ class Brain:
 		self.undecided = [-1, -1, -1]
 		self.ply = 4
 
-	def move(self,board,n):
+	def move(self,board,n, display):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
@@ -168,7 +168,7 @@ class Brain:
 		"""
 
 		numMoves = self.b.numMoves(self.n)[0]
-		moves = [[0,0,0],[0,0,3],[3,0,0],[3,3,3],[3,3,3],[3,3,3]]
+		moves = [[0,0,0],[0,0,0],[3,0,0],[3,3,3],[3,3,3],[3,3,3]]
 		return moves[numMoves]
 
 		currentPly = self.ply

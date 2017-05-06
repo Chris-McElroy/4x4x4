@@ -1,3 +1,9 @@
+import pygame
+from pygame.locals import *
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
 class Human:
 	""" functions as the player for a real life person """
 
@@ -5,7 +11,7 @@ class Human:
 		""" Stores player info for easy access """
 		self.n = playerNumber
 
-	def move(self,board,n):
+	def move(self,board,n,display):
 		"""
 		The main function for this class.  Returns the point the person wants to move in.
 		"""
@@ -13,12 +19,18 @@ class Human:
 		self.n = n
 		numMoves = board.numMoves(self.n)[0]
 
-		if numMoves < 4:
-			#moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
-			moves = [[1,2,1],[2,2,1],[3,2,1],[2,1,2],[3,3,3],[3,3,3]]
-			return moves[numMoves]
+		# if numMoves < 4:
+		# 	#moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
+		# 	moves = [[1,2,1],[2,2,1],[3,2,1],[2,1,2],[3,3,3],[3,3,3]]
+		# 	return moves[numMoves]
 		
 		goodInput = False
+
+		chosenPoint = display.mostRecentClick
+		enter = input("enter 'y' to confirm move")
+		if enter == "y":
+			return chosenPoint
+
 
 		while(not goodInput):
 			chosenPointTogether = input("Where do you want to move?\n(Enter the numbers (from 1-4) together: xyz)\n>>> ")
@@ -38,3 +50,17 @@ class Human:
 				goodInput = False
 
 		return chosenPoint
+
+
+
+
+
+
+
+
+
+
+
+
+
+

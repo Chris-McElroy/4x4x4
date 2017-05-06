@@ -19,14 +19,21 @@ class Display:
 		self.check_current = False
 		self.check_n = 0
 		self.check_p = [0,0,0]
+		self.gameDisplay = None
+		self.test4 = None
+		self.rects = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+		self.mostRecentClick = [-1,-1,-1]
+		self.num = 0
 
 	def initializeBoard(self):
 		""" prepares to display board """
 
 		pygame.init()
 		display = (800, 600)
-		pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
+		self.gameDisplay = pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 		self.title("")
+
+		self.createRects()
 
 		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
 		glTranslatef(0.0,0, -200)
@@ -50,6 +57,32 @@ class Display:
 				pygame.quit()
 				quit()
 
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+				self.mostRecentClick = [-1,-1,-1]
+
+				# get a list of all sprites that are under the mouse cursor
+				for i in range(4):
+					for j in range(4):
+						for k in range(4):
+							if self.rects[i][j][k].collidepoint(pos):
+								self.mostRecentClick = [i,j,k]
+				self.title(str(self.mostRecentClick))
+
+	def displayTestBox(self):
+		n = 0
+
+		while n < 100:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					quit()
+
+			n += 1
+
+			pygame.draw.rect(self.gameDisplay,(255,255,0),[200,300,20,20])
+			pygame.display.flip()
+
 	def displayBoard(self):
 		""" clears screen and redisplays board """
 
@@ -58,6 +91,10 @@ class Display:
 		self.checkInputs()
 
 		self.displayPieces()
+
+		#self.gameDisplay.fill((0,0,0))
+
+		#pygame.draw.rect(self.gameDisplay,(255,255,0),[200,300,20,20])
 
 		# self.displayStructure()
 
@@ -180,7 +217,37 @@ class Display:
 		glEnd()
 
 
+	def createRects(self):
+		""" creates all the rectangles for clicking """
+		width = 30
+		height = 35
+		n = 0
+
+		for i in range(4):
+			for j in range(4):
+				for k in range(4):
+					rectPos = self.getRectPos(i,j,k)
+					self.rects[i][j][k] = pygame.Rect(rectPos,(width,height))
+					n += 1
+
+	def getRectPos(self,i,j,k):
+		x = 250
+		y = 106
+
+		x += i*387/3
+		y += i*(-8)
+
+		x += j*(-117)/3
+		y += j*(-22)
+
+		x += 0
+		y += k*441/3
+
+		return (x,y)
 
 
 
+newB = Board()
+newD = Display(newB)
+newD.initializeBoard()
 

@@ -38,12 +38,12 @@ class Master:
 
 			self.d.updateBoard(self.b)
 			i = 0
-			while i < 20:
+			while i < 200:
 				self.d.displayBoard()
 				pygame.time.wait(10)
 				i += 1 # WHOOOPS FORGOT THIS
 
-			nextMove = players[self.n-1].move(self.b, self.n)
+			nextMove = players[self.n-1].move(self.b, self.n, self.d)
 			noProblem = self.b.move(self.n,nextMove)
 
 			if not noProblem:
