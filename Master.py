@@ -38,7 +38,7 @@ class Master:
 
 			self.d.updateBoard(self.b)
 			i = 0
-			while i < 200:
+			while i < 50:
 				self.d.displayBoard()
 				pygame.time.wait(10)
 				i += 1 # WHOOOPS FORGOT THIS
