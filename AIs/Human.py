@@ -12,6 +12,7 @@ class Human:
 	def __init__(self, currentBoard, playerNumber):
 		""" Stores player info for easy access """
 		self.n = playerNumber
+		print "Double click to move!"
 
 	def move(self,board,n,display):
 		"""
@@ -21,7 +22,6 @@ class Human:
 		move = False
 		goodInput = False
 
-		print "Click where you want to move and press enter!"
 		while not goodInput:
 			pygame.time.wait(10)
 

@@ -43,8 +43,8 @@ class Display:
 	def getMove(self):
 		self.checkInputs()
 		if self.approvedMove:
-			self.approvedMove = False
 			move = self.mostRecentClick
+			self.approvedMove = False
 			self.mostRecentClick = False
 			return move
 		else:
@@ -58,21 +58,24 @@ class Display:
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
-				self.mostRecentClick = False
 
 				# get a list of all sprites that are under the mouse cursor
+				clicked = False
 				for i in range(4):
 					for j in range(4):
 						for k in range(4):
 							if self.rects[i][j][k].collidepoint(pos):
-								self.mostRecentClick = [i,j,k]
+								clicked = True
+								if self.mostRecentClick == [i,j,k]:
+									self.approvedMove = True
+								else:
+									self.mostRecentClick = [i,j,k]
+				if not clicked:
+					self.mostRecentClick = clicked
 
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
 					self.pauseDisplay()
-
-				if event.key == pygame.K_RETURN:
-					self.approvedMove = True
 
 	def pauseDisplay(self):
 		""" manages the paused game """
