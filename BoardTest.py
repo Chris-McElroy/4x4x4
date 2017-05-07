@@ -314,15 +314,16 @@ class BoardTest(unittest.TestCase):
 		# now with somewhat blocked board
 		test1.b = self.fourMoveBoard
 		point = [0,0,0]
-		lines = [0,16,32,48,56,64,72]
+		lines = []
 		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
+		lines = [0,16,32,48,56,64,72]
 		self.assertEqual(test1.openLinesForPoint(1,point,1),lines)
 		lines = []
 		self.assertEqual(test1.openLinesForPoint(1,point,2),lines)
 		self.assertEqual(test1.openLinesForPoint(2,point,0),lines)
 
 		point = [1,0,0]
-		lines = [0,17,36,49]
+		lines = [17,36,49]
 		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
 
 		point = [2,1,2]
@@ -334,7 +335,7 @@ class BoardTest(unittest.TestCase):
 		self.assertEqual(test1.openLinesForPoint(2,point,1),lines)
 
 		point = [3,1,2]
-		lines = [6,27,45,55]
+		lines = [6,27,45]
 		self.assertEqual(test1.openLinesForPoint(1,point,0),lines)
 		lines = [55]
 		self.assertEqual(test1.openLinesForPoint(1,point,1),lines)
