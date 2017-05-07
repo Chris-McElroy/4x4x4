@@ -48,6 +48,12 @@ class Board:
 		"""
 		Returns the other player's number
 		"""
+		if n == 1:
+			return 2
+		elif n == 2:
+			return 1
+		else:
+			return 0
 
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
@@ -72,6 +78,13 @@ class Board:
 			return True
 		else:
 			return False
+
+	def clearPoint(self,p):
+			""" clears a move, returns the previous value there"""
+
+			previous = self.b[p[0]][p[1]][p[2]]
+			self.b[p[0]][p[1]][p[2]] = 0
+			return previous
 
 	# Find lines
 	def findLines(self, n,num):
