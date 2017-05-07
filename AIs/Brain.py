@@ -168,7 +168,7 @@ class Brain:
 		"""
 
 		numMoves = self.b.numMoves(self.n)[0]
-		moves = [[0,0,0],[0,0,0],[3,0,0],[3,3,3],[3,3,3],[3,3,3]]
+		moves = [[0,0,0],[0,3,0],[0,3,0],[3,3,3],[3,3,3],[3,3,3]]
 		return moves[numMoves]
 
 		currentPly = self.ply

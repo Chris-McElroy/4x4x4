@@ -37,8 +37,9 @@ class Master:
 			self.d.title(titleText)
 
 			self.d.updateBoard(self.b)
+
 			i = 0
-			while i < 50:
+			while i < 10:
 				self.d.displayBoard()
 				pygame.time.wait(10)
 				i += 1 # WHOOOPS FORGOT THIS
@@ -56,6 +57,8 @@ class Master:
 			self.n = 1 if (self.n == 2) else 2
 
 		print "Game Over \n"
+		pygame.quit()
+		quit()
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """

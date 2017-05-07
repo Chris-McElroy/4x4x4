@@ -20,10 +20,11 @@ class Display:
 		self.check_n = 0
 		self.check_p = [0,0,0]
 		self.gameDisplay = None
-		self.test4 = None
 		self.rects = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-		self.mostRecentClick = [-1,-1,-1]
-		self.num = 0
+		self.mostRecentClick = False
+		self.approvedMove = False
+		self.click_n = 0
+		self.titleText = ""
 
 	def initializeBoard(self):
 		""" prepares to display board """
@@ -37,25 +38,15 @@ class Display:
 
 		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
 		glTranslatef(0.0,0, -200)
-		glRotatef(20,.3,.5,0.04)
-
-	def displayShittyBoard(self):
-		""" displays the board reallllyy shitty """
-		for i in range(4):
-			lineString = ""
-			for j in range(4):
-				l = j + 4*i
-				values = self.b.lineToValues(l)
-				for v in values:
-					lineString += self.valueToMark(v) + " "
-				lineString += "  "
-			print lineString
+		glRotatef(20,0.3,0.5,0.04)
 
 	def getMove(self):
-		self.mostRecentClick = [-1,-1,-1]
 		self.checkInputs()
-		if self.mostRecentClick != [-1,-1,-1]:
-			return self.mostRecentClick
+		if self.approvedMove:
+			self.approvedMove = False
+			move = self.mostRecentClick
+			self.mostRecentClick = False
+			return move
 		else:
 			return False
 
@@ -67,7 +58,7 @@ class Display:
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
-				self.mostRecentClick = [-1,-1,-1]
+				self.mostRecentClick = False
 
 				# get a list of all sprites that are under the mouse cursor
 				for i in range(4):
@@ -75,21 +66,62 @@ class Display:
 						for k in range(4):
 							if self.rects[i][j][k].collidepoint(pos):
 								self.mostRecentClick = [i,j,k]
-				self.title(str(self.mostRecentClick))
 
-	def displayTestBox(self):
-		n = 0
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_SPACE:
+					self.pauseDisplay()
 
-		while n < 100:
+				if event.key == pygame.K_RETURN:
+					self.approvedMove = True
+
+	def pauseDisplay(self):
+		""" manages the paused game """
+		paused = True
+		oldTitle = self.titleText
+		self.title("PAUSED")
+		while paused:
+			pygame.time.wait(10)
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					pygame.quit()
 					quit()
 
-			n += 1
+				if event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_1:
+						self.dir = 1
+					if event.key == pygame.K_2:
+						self.dir = 2
+					if event.key == pygame.K_3:
+						self.dir = 3
+					if event.key == pygame.K_4:
+						self.dir = 4
+					if event.key == pygame.K_5:
+						self.dir = 5
+					if event.key == pygame.K_6:
+						self.dir = 6
 
-			pygame.draw.rect(self.gameDisplay,(255,255,0),[200,300,20,20])
-			pygame.display.flip()
+					if event.key == pygame.K_LEFT:
+						glRotated(10,0,1,0)
+					if event.key == pygame.K_RIGHT:
+						glRotated(-10,0,1,0)
+					if event.key == pygame.K_UP:
+						glRotated(10,1,0,0)
+					if event.key == pygame.K_DOWN:
+						glRotated(-10,1,0,0)
+
+					self.displayBoard()
+					
+					if event.key == pygame.K_SPACE:
+						paused = False
+
+		self.title(oldTitle)
+		self.dir = 1
+
+		display = (800,600)
+		glLoadIdentity();
+		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
+		glTranslatef(0.0,0, -200)
+		glRotatef(20,0.3,0.5,0.04)
 
 	def displayBoard(self):
 		""" clears screen and redisplays board """
@@ -111,6 +143,7 @@ class Display:
 	def title(self,string):
 		""" sets the title of the display to be string """
 		pygame.display.set_caption(string)
+		self.titleText = string
 
 	def displayPieces(self):
 		""" displays all the pieces on the board """
@@ -132,6 +165,13 @@ class Display:
 					v = 3
 				elif self.check_n > 6:
 					self.check_n = 0
+
+			if p == self.mostRecentClick:
+				self.click_n += 1
+				if self.click_n < 4:
+					v = 4
+				elif self.click_n > 6:
+					self.click_n = 0
 
 			self.cube(pos, v)
 
@@ -156,19 +196,19 @@ class Display:
 			points = [[i,3-k,3-j] for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 2:
-			points = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [[3-k,3-i,3-j] for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 3:
-			points = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [[3-i,k,3-j] for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 4:
-			points = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [[k,i,3-j] for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 5:
-			points = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [[i,j,3-k] for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 6:
-			points = [[i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [[3-i,j,k] for i in range(4) for j in range(4) for k in range(4)]
 
 		return points
 
@@ -192,21 +232,13 @@ class Display:
 
 		self.b = board
 
-	def cube(self, p, n):
+	def cube(self, p, v):
 		d = .4
 		verticies = [(p[0]+i,p[1]+j,p[2]+k) for i in [-d,d] for j in [-d,d] for k in [-d,d]]
 		edges = ((0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),(4,5),(4,6),(5,7),(6,7))
 		surfaces = ((0,1,2,3),(0,1,5,4),(0,2,6,4),(7,6,5,4),(7,6,2,3),(7,5,1,3))
 
-		color = (1,1,1)
-		if n == 1:
-			color = (0,1,0)
-		elif n == 2:
-			color = (0,1,1)
-		elif n == 0:
-			color = (.2,.2,.2)
-		elif n == 3:
-			color = (1,0,0)
+		color = self.cubeColor(v)
 
 		glBegin(GL_QUADS)
 		glColor3fv(color)
@@ -224,6 +256,20 @@ class Display:
 				glVertex3fv(verticies[vertex])
 		glEnd()
 
+	def cubeColor(self,v):
+		color = (1,1,1)
+		if v == 1:
+			color = (0,1,0)
+		elif v == 2:
+			color = (0,1,1)
+		elif v == 0:
+			color = (.2,.2,.2)
+		elif v == 3:
+			color = (1,0,0)
+		elif v == 4:
+			color = (1,1,0)
+
+		return color
 
 	def createRects(self):
 		""" creates all the rectangles for clicking """
@@ -253,6 +299,17 @@ class Display:
 
 		return (x,y)
 
+	def displayShittyBoard(self):
+		""" displays the board reallllyy shitty """
+		for i in range(4):
+			lineString = ""
+			for j in range(4):
+				l = j + 4*i
+				values = self.b.lineToValues(l)
+				for v in values:
+					lineString += self.valueToMark(v) + " "
+				lineString += "  "
+			print lineString
 
 
 newB = Board()

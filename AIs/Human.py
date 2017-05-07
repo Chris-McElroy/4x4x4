@@ -18,43 +18,22 @@ class Human:
 		The main function for this class.  Returns the point the person wants to move in.
 		"""
 
-		self.n = n
-		numMoves = board.numMoves(self.n)[0]
-
-		# if numMoves < 4:
-		# 	#moves = [[1,2,1],[2,1,1],[3,1,2],[2,0,1],[3,3,3],[3,3,3]]
-		# 	moves = [[1,2,1],[2,2,1],[3,2,1],[2,1,2],[3,3,3],[3,3,3]]
-		# 	return moves[numMoves]
-
-
 		move = False
-		while not move:
-			time.sleep(.1)
-			move = display.getMove()
-		return move
-		
 		goodInput = False
 
-		while(not goodInput):
-			chosenPointTogether = input("Where do you want to move?\n(Enter the numbers (from 1-4) together: xyz)\n>>> ")
-			chosenPoint = [0,0,0]
-			goodInput = True
+		print "Click where you want to move and press enter!"
+		while not goodInput:
+			pygame.time.wait(10)
 
-			for i in range(3):
-				if (chosenPointTogether%10 - 1 in range(4)):
-					chosenPoint[2-i] = chosenPointTogether%10-1
-					chosenPointTogether = chosenPointTogether/10
-				else:
-					print "\nBad input, try again!"
-					goodInput = False
+			display.displayBoard()
+			move = display.getMove()
 
-			if chosenPoint not in board.openPoints() and goodInput:
-				print "\nBad input, try again!"
-				goodInput = False
+			if move in board.openPoints():
+				goodInput = True
+			elif move:
+				print "Bad input, try again!"
 
-		return chosenPoint
-
-
+		return move
 
 
 
