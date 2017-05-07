@@ -79,6 +79,10 @@ class Display:
 		paused = True
 		oldTitle = self.titleText
 		self.title("PAUSED")
+
+		glClearColor(.4,.4,.4,.4)
+		self.displayBoard()
+
 		while paused:
 			pygame.time.wait(10)
 			for event in pygame.event.get():
@@ -108,11 +112,12 @@ class Display:
 						glRotated(10,1,0,0)
 					if event.key == pygame.K_DOWN:
 						glRotated(-10,1,0,0)
-
-					self.displayBoard()
 					
 					if event.key == pygame.K_SPACE:
 						paused = False
+
+					glClearColor(.4,.4,.4,.4)
+					self.displayBoard()
 
 		self.title(oldTitle)
 		self.dir = 1
@@ -123,6 +128,8 @@ class Display:
 		glTranslatef(0.0,0, -200)
 		glRotatef(20,0.3,0.5,0.04)
 
+		self.displayBoard()
+
 	def displayBoard(self):
 		""" clears screen and redisplays board """
 
@@ -132,13 +139,9 @@ class Display:
 
 		self.displayPieces()
 
-		#self.gameDisplay.fill((0,0,0))
-
-		#pygame.draw.rect(self.gameDisplay,(255,255,0),[200,300,20,20])
-
-		# self.displayStructure()
-
 		pygame.display.flip()
+
+		glClearColor(0,0,0,0)
 
 	def title(self,string):
 		""" sets the title of the display to be string """
