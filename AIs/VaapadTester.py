@@ -1,4 +1,4 @@
-from Brain import *
+from Vaapad import *
 import unittest
 
 class boardTest(unittest.TestCase):

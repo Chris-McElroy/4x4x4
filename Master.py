@@ -1,6 +1,6 @@
 from Board import *
 from Display import *
-from AIs.Brain import *
+from AIs.Vaapad import *
 from AIs.Human import *
 import time
 import sys
@@ -121,7 +121,7 @@ class Master:
 		return checkMate
 
 tryTo = Master()
-player1 = Brain(tryTo.b,1)
+player1 = Vaapad(tryTo.b,1)
 player2 = Human(tryTo.b,2)
 tryTo.playGame([player1,player2],1)
 

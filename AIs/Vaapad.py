@@ -1,7 +1,7 @@
 from Board import *
 import random
 
-class Brain:
+class Vaapad:
 	"""
 	The AI class for tic tac toe.  Decides where the AI will go when fed with a board.
 	"""
@@ -28,7 +28,7 @@ class Brain:
 		#bestPoint = self.moves[0]
 		#return bestPoint
 
-		other = Brain(self.b,self.o)
+		other = Vaapad(self.b,self.o)
 
 		# check for four in a row on both sides
 		move = self.assuredMove()
@@ -53,7 +53,7 @@ class Brain:
 		return self.undecided
 
 	def assuredMove(self):
-		other = Brain(self.b,self.o)
+		other = Vaapad(self.b,self.o)
 		self.decided, self.assured, other.decided, other.assured = (False,)*4
 
 		# check for four in a row on both sides
@@ -142,7 +142,7 @@ class Brain:
 		for pairN in range(lenPairs):
 			for i in [0,1]:
 				newBoard = Board()
-				newAI = Brain(newBoard,self.n)
+				newAI = Vaapad(newBoard,self.n)
 				newAI.b.copyBoard(self.b)
 				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:
