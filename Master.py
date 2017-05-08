@@ -131,7 +131,7 @@ class Master:
 		return checkMate
 
 tryTo = Master()
-player1 = Wildfire(tryTo.b,1)
+player1 = Vaapad(tryTo.b,1)
 player2 = Human(tryTo.b,2)
 tryTo.playGame([None,player1,player2],1)
 

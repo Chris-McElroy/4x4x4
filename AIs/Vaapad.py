@@ -122,34 +122,68 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		for ply in range(32):
-			winningMoves = self.recursiveForceToFinish(pairs, ply, True, [])
+			winningMoves = self.recursiveForceToFinish(pairs, ply)
 			if winningMoves != []:
 				break
 
 		return self.chooseMove(winningMoves) 
 
-	def recursiveForceToFinish(self, pairs, ply, shouldPrint, moveChain):
+	def recursiveForceToFinish(self, pairs, ply):
 		""" solves force to finish recursively """
 
 		lenPairs = len(pairs)
 		moves = []
+		otherChecks = self.b.findLines(self.o,3)
 
-		if lenPairs == 0:
-			return moves
+		allowedPairs = range(lenPairs)
+		allowedIndex = range(2)
 
-		for pairN in range(lenPairs):
-			for i in [0,1]:
+		if otherChecks != []:
+			checkLine = self.b.lineToPoints(otherChecks[0])
+			for p in checkLine:
+				if newAI.b.pointToValue(p) == 0:
+					checkP = p
+			allAllowed = True
+			pairN = 0
+			i = 0
+			while allAllowed:
+				if pairs[pairN][i] == checkP:
+					allowedPairs = [pairN]
+					allowedIndex = [i]
+					allAllowed = False
+				if i == 1:
+					i = 0
+					pairN += 1
+				if i == 0:
+					i = 1
+				if pairN > lenPairs:
+					return moves # fucking give the fuck up
+
+		for pairN in allowedPairs:
+			for i in allowedIndex:
 				newBoard = Board()
 				newAI = Vaapad(newBoard,self.n)
 				newAI.b.copyBoard(self.b)
-				newAI.updateForForce(pairs[pairN],i, moveChain)
+				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:
 					moves += [pairs[pairN][i]]
 				elif ply > 0:
-					newPairs = newAI.b.findForces(self.n)
-					futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1, False, moveChain + [pairs[pairN][i]])
-					if futureMoves != []:
-						moves += [pairs[pairN][i]]
+					otherChecks = newAI.b.findLines(newAI.o,3)
+					newPairs = newAI.b.findForces(newAI.n)
+					if otherChecks == []:
+						futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1)
+						if futureMoves != []:
+							moves += [pairs[pairN][i]]
+					else:
+						checkLine = newAI.b.lineToPoints(otherChecks[0])
+						for p in checkLine:
+							if newAI.b.pointToValue(p) == 0:
+								checkP = p
+						for pair in newPairs:
+							for i in [0,1]:
+								if pair[i] == checkP:
+									newAI.updateForForce(pair,i)
+
 				# elif ply == 0:
 				# 	print "got to 0"
 
@@ -197,7 +231,7 @@ class Vaapad:
 		More efficient than updating fully each time
 		"""
 
-	def updateForForce(self, pair, myNum, moveChain):
+	def updateForForce(self, pair, myNum):
 		"""
 		Fills given pair and checks for win along given lines
 		myNum is position chosen by player n (either 0 or 1)
@@ -208,7 +242,7 @@ class Vaapad:
 		self.b.move(self.n,pair[myNum])
 		self.b.move(self.o,pair[otherNum])
 
-		self.updateWinsForPoint(pair,myNum, moveChain)
+		self.updateWinsForPoint(pair,myNum)
 
 	def updateAll(self, board, n):
 		"""
@@ -221,7 +255,7 @@ class Vaapad:
 		self.decided = False
 		self.assured = False
 
-	def updateWinsForPoint(self, pair, myNum, moveChain):
+	def updateWinsForPoint(self, pair, myNum):
 		"""
 		Checks whether a just-filled point caused any wins
 		"""
@@ -233,8 +267,8 @@ class Vaapad:
 			self.decided = True
 
 		checks = self.b.openLinesForPoint(self.n,pair[myNum],3)
-		wins = self.b.openLinesForPoint(self.o,pair[otherNum],4)
-		if  len(checks) > 0 and len(wins) == 0:
+		other = self.b.openLinesForPoint(self.o,pair[otherNum],4)
+		if  len(checks) > 0 and len(other) == 0:
 
 			# print "i think ill have checkmate"
 			# print checks
