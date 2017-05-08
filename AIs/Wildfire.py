@@ -28,11 +28,16 @@ class Wildfire:
 
 		bestScore = 0
 		bestMoves = []
+		for point in board.openPoints():
+			board.move(n, point)
 			score = self.evaluatePosition(board, n)
+			board.clearPoint(point)
 
 			if score > bestScore:
 				bestScore = score
+				bestMoves = [point]
 			elif score == bestScore:
+				bestMoves.append(point)
 
 		return random.choice(bestMoves)
 
@@ -47,6 +52,9 @@ class Wildfire:
 	def winningMove(self, board, n):
 		forces = board.findLines(n, 3)
 		if len(forces) > 0:
+			for point in board.lineToPoints(forces[0]):
+				if board.pointToValue(point) == 0:
+					return point
 	
 	def forceCheckRec(self, board, n, movesLeft):
 
@@ -65,6 +73,8 @@ class Wildfire:
 			board.move(board.otherNumber(n), openSpots[1])
 
 			success = self.forceCheckRec(board, n, movesLeft-1)
+			board.clearPoint(openSpots[0])
+			board.clearPoint(openSpots[1])
 
 			if success:
 				return openSpots[0]
@@ -73,6 +83,8 @@ class Wildfire:
 			board.move(board.otherNumber(n), openSpots[0])
 
 			success = self.forceCheckRec(board, n, movesLeft-1)
+			board.clearPoint(openSpots[0])
+			board.clearPoint(openSpots[1])
 			if success:
 				return openSpots[1]
 
@@ -82,7 +94,9 @@ class Wildfire:
 		score = 0
 		score += len(board.findLines(n,1))
 		score += 2 * len(board.findLines(n,2))
+		score += 20 * (self.forceCheckRec(board, n, self.MAX_FORCES-2) != 0)
 
+		if self.forceCheckRec(board, board.otherNumber(n), self.MAX_FORCES-2) != 0:
 			return 0
 
 		return score
