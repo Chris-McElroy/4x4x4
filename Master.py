@@ -132,7 +132,7 @@ class Master:
 
 tryTo = Master()
 player1 = Wildfire(tryTo.b,1)
-player2 = Human(tryTo.b,2)
+player2 = Vaapad(tryTo.b,2)
 tryTo.playGame([player1,player2],1)
 
 
