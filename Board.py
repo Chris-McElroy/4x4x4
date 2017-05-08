@@ -86,6 +86,13 @@ class Board:
 		else:
 			return False
 
+	def clearPoint(self,p):
+			""" clears a move, returns the previous value there"""
+
+			previous = self.b[p[0]][p[1]][p[2]]
+			self.b[p[0]][p[1]][p[2]] = 0
+			return previous
+
 	# Find lines
 	def findLines(self, n,num):
 		""" 
@@ -495,6 +502,10 @@ class Board:
 	def pointToValue(self,p):
 		""" convert a single point to a value """
 		return self.b[p[0]][p[1]][p[2]]
+
+	def hash(self):
+		""" this is bad and gross. probably fix later"""
+		return sum([2**i * (self.b[i%4][(i/4) % 4][i/16]-1) for i in range(64)])
 
 
 
