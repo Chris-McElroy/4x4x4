@@ -42,12 +42,25 @@ class Board:
 		"""
 		Return a list of all points player n has on the board
 		"""
-		return []
+		points = []
+		for i in range(4):
+			for j in range(4):
+				for k in range(4):
+					current = self.b[i][j][k]
+					if (current == n):
+						points += [[i,j,k]]
+		return points
 
 	def otherNumber(self, n):
 		"""
 		Returns the other player's number
 		"""
+		newN = 0
+		if n == 1:
+			newN = 2
+		elif n == 2:
+			newN = 1
+		return newN
 
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
@@ -449,7 +462,12 @@ class Board:
 		"""
 		Returns a list of all the line numbers passing through point p
 		"""
-		return []
+		lines = []
+		for line in range(76):
+			points = self.lineToPoints(line)
+			if p in points:
+				lines += [line]
+		return lines
 
 	def openLinesForPoint(self, n, p, num):
 		"""

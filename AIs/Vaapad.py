@@ -11,7 +11,7 @@ class Vaapad:
 		self.b = currentBoard # Board object, not array
 		self.n = playerNumber
 		self.o = self.b.otherNumber(self.n)
-		self.moves = self.b.openPoints()
+		#self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False
 
@@ -25,9 +25,6 @@ class Vaapad:
 
 		self.updateAll(board,n)
 
-		#bestPoint = self.moves[0]
-		#return bestPoint
-
 		other = Vaapad(self.b,self.o)
 
 		# check for four in a row on both sides
@@ -36,8 +33,8 @@ class Vaapad:
 			return move
 
 		other.lookAhead()
-		if other.assured: # checks for their strong lookahead
-			self.moves = self.guardLookAhead()
+		#if other.assured: # checks for their strong lookahead
+			#self.moves = self.guardLookAhead()
 
 		move = self.lookAhead() # casual lookahead
 		return move
@@ -48,7 +45,10 @@ class Vaapad:
 		Currently: Random
 		"""
 
-		if (len(moves) > 0):
+		nn = 64
+		if (len(moves) > nn):
+			return moves[nn]
+		elif (len(moves) > 0):
 			return random.choice(moves)
 		return self.undecided
 
@@ -67,14 +67,9 @@ class Vaapad:
 			self.decided = True
 			return move1
 
-		move2 = self.checkCheckmates()
-		if self.assured:
-			print "I have mate\n"
-			return move2
-
 		move3 = self.forceToFinish()
 		if self.assured:
-			print "I have the force\n"
+			print "I have the force.\n"
 			return move3
 
 		move4 = self.lookAhead()
@@ -126,11 +121,14 @@ class Vaapad:
 		"""
 
 		pairs = self.b.findForces(self.n)
-		winningMoves = self.recursiveForceToFinish(pairs, 6)
+		for ply in range(32):
+			winningMoves = self.recursiveForceToFinish(pairs, ply, True, [])
+			if winningMoves != []:
+				break
 
 		return self.chooseMove(winningMoves) 
 
-	def recursiveForceToFinish(self, pairs, ply):
+	def recursiveForceToFinish(self, pairs, ply, shouldPrint, moveChain):
 		""" solves force to finish recursively """
 
 		lenPairs = len(pairs)
@@ -144,16 +142,16 @@ class Vaapad:
 				newBoard = Board()
 				newAI = Vaapad(newBoard,self.n)
 				newAI.b.copyBoard(self.b)
-				newAI.updateForForce(pairs[pairN],i)
+				newAI.updateForForce(pairs[pairN],i, moveChain)
 				if newAI.assured:
 					moves += [pairs[pairN][i]]
 				elif ply > 0:
 					newPairs = newAI.b.findForces(self.n)
-					futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1)
+					futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1, False, moveChain + [pairs[pairN][i]])
 					if futureMoves != []:
 						moves += [pairs[pairN][i]]
-				#elif ply == 0:
-					#print "got to 0"
+				# elif ply == 0:
+				# 	print "got to 0"
 
 		if moves != []:
 			self.assured = True
@@ -168,11 +166,24 @@ class Vaapad:
 		"""
 
 		numMoves = self.b.numMoves(self.n)[0]
-		moves = [[0,0,0],[0,3,0],[0,3,0],[3,3,3],[3,3,3],[3,3,3]]
+		# simple four in a row
+		#moves = [[0,0,0],[1,0,0],[2,0,0],[3,3,3]]
+
+		# simple checkmate
+		#moves = [[0,0,0],[1,0,0],[0,0,3],[2,0,1]]
+
+		# 1 force checkmate
+		#moves = [[0,0,0],[1,0,0],[1,0,1],[2,0,1],[3,3,3]]
+
+		# 3 move force
+		# moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,0],[0,0,1],[3,3,3]]
+
+		# god opening
+		moves = [[1,1,1],[0,3,0],[1,2,2],[2,2,2],[3,2,3]]
 		return moves[numMoves]
 
 		currentPly = self.ply
-		currentMoves = self.moves
+		#currentMoves = self.moves
 
 		while (currentPly > 0):
 			return [0,1,3]
@@ -186,7 +197,7 @@ class Vaapad:
 		More efficient than updating fully each time
 		"""
 
-	def updateForForce(self, pair, myNum):
+	def updateForForce(self, pair, myNum, moveChain):
 		"""
 		Fills given pair and checks for win along given lines
 		myNum is position chosen by player n (either 0 or 1)
@@ -197,7 +208,7 @@ class Vaapad:
 		self.b.move(self.n,pair[myNum])
 		self.b.move(self.o,pair[otherNum])
 
-		self.updateWinsForPoint(pair[myNum])
+		self.updateWinsForPoint(pair,myNum, moveChain)
 
 	def updateAll(self, board, n):
 		"""
@@ -206,22 +217,39 @@ class Vaapad:
 		self.b = board # Board object, not array
 		self.n = n
 		self.o = self.b.otherNumber(self.n)
-		self.moves = self.b.openPoints()
+		#self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False
 
-	def updateWinsForPoint(self, p):
+	def updateWinsForPoint(self, pair, myNum, moveChain):
 		"""
 		Checks whether a just-filled point caused any wins
 		"""
-		wins = self.b.openLinesForPoint(self.n,p,4)
+		otherNum = 0 if myNum == 1 else 1
+
+		wins = self.b.openLinesForPoint(self.n,pair[myNum],4)
 		if len(wins) > 0:
 			self.assured = True
 			self.decided = True
 
-		checks = self.b.openLinesForPoint(self.n,p,3)
-		wins = self.b.openLinesForPoint(self.o,p,4)
-		if  len(checks) > 1 and len(wins) == 0:
+		checks = self.b.openLinesForPoint(self.n,pair[myNum],3)
+		wins = self.b.openLinesForPoint(self.o,pair[otherNum],4)
+		if  len(checks) > 0 and len(wins) == 0:
+
+			# print "i think ill have checkmate"
+			# print checks
+			# print moveChain
+			# print pair[myNum]
+			# print "here's the board:"
+			# for i in [3,2,1,0]:
+			# 	lineString = ""
+			# 	for j in range(4):
+			# 		l = j + 4*i
+			# 		values = self.b.lineToValues(l)
+			# 		for v in values:
+			# 			lineString += self.valueToMark(v) + " "
+			# 		lineString += "  "
+			# 	print lineString
 			self.assured = True
 			self.decided = True
 
@@ -229,6 +257,21 @@ class Vaapad:
 		"""
 		Returns True if p causes a win, False if the game is still being played
 		"""
+
+	def valueToMark(self,v):
+		""" converts value to a mark """
+		mark = ""
+
+		if (v == 0):
+			mark = "-"
+
+		elif (v == 1):
+			mark = "X"
+
+		elif (v == 2):
+			mark = "O"
+
+		return mark
 
 
 

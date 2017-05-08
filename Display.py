@@ -24,7 +24,9 @@ class Display:
 		self.mostRecentClick = False
 		self.approvedMove = False
 		self.click_n = 0
+		self.win_n = 0
 		self.titleText = ""
+		self.winningMove = False
 
 	def initializeBoard(self):
 		""" prepares to display board """
@@ -58,6 +60,7 @@ class Display:
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
+				self.click_n = 0
 
 				# get a list of all sprites that are under the mouse cursor
 				clicked = False
@@ -178,6 +181,13 @@ class Display:
 					v = 4
 				elif self.click_n > 6:
 					self.click_n = 0
+
+			if p == self.winningMove:
+				self.win_n += 1
+				if self.win_n < 4:
+					v = 4
+				elif self.win_n > 6:
+					self.win_n = 0
 
 			self.cube(pos, v)
 
@@ -316,6 +326,10 @@ class Display:
 					lineString += self.valueToMark(v) + " "
 				lineString += "  "
 			print lineString
+
+	def setWinningMove(self,p):
+		""" sets the winning move """
+		self.winningMove = p
 
 
 newB = Board()

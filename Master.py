@@ -53,8 +53,7 @@ class Master:
 
 			continueGame = self.checkBoard(nextMove)
 
-			#n = self.b.otherNumber(n)
-			self.n = 1 if (self.n == 2) else 2
+			self.n = self.b.otherNumber(self.n)
 
 		print "Game Over \n"
 		pygame.quit()
@@ -71,28 +70,38 @@ class Master:
 
 		if wins > 0:
 			continueGame = False
-			self.d.title("Player " + str(self.n) + " Wins!\nThey got 4 in a row!")
-
+			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
+			self.d.setWinningMove(move)
 			self.d.updateBoard(self.b)
-			self.d.displayShittyBoard()
 
-		if checkMate:
+			i = 0
+			while i < 17+36:
+				self.d.displayBoard()
+				pygame.time.wait(10)
+				i += 1 # WHOOOPS FORGOT THIS
+
+		elif checkMate:
 			continueGame = False
-			self.d.title("Player " + str(self.n) + " Wins!\nThey got checkmate!")
-
+			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
+			self.d.setWinningMove(move)
 			self.d.updateBoard(self.b)
-			self.d.displayShittyBoard()
 
-		if (len(checks) > 0 and continueGame):
+			i = 0
+			while i < 17+36:
+				self.d.displayBoard()
+				pygame.time.wait(10)
+				i += 1 # WHOOOPS FORGOT THIS
+
+		elif len(checks) > 0:
 			checkPoints = self.b.lineToPoints(checks[0])
 			checkString = ""
 			for point in checkPoints:
 				if self.b.pointToValue(point) == 0:
 					self.d.checkPoint(point)
 					checkString = self.pointToString(point)
-					print "Move at: " + checkString
 					self.forced = True
-			# self.d.title("Check! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!				")
+			self.d.title("Check! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!				")
+			self.d.updateBoard(self.b)
 
 		else:
 			self.d.uncheckPoint()
@@ -116,7 +125,7 @@ class Master:
 		for p in points:
 			checks = self.b.openLinesForPoint(self.n,p,3)
 			if len(checks) > 1:
-				checkMates = True
+				checkMate = True
 
 		return checkMate
 
