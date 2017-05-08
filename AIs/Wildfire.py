@@ -9,7 +9,8 @@ class Wildfire:
 	def __init__(self, currentBoard, playerNumber):
 		""" Stores player info for easy access """
 		self.n = playerNumber
-		self.MAX_FORCES = 6
+		self.MAX_FORCES = 8
+		self.forceCache = {}
 
 	def move(self,board,n, d):
 		"""
@@ -22,7 +23,7 @@ class Wildfire:
 		if self.winningMove(board, board.otherNumber(n)):
 			return self.winningMove(board, board.otherNumber(n))
 
-		winningForce = self.forceCheckRec(board, n, self.MAX_FORCES)
+		winningForce = self.forceCheck(board, n, self.MAX_FORCES)
 		if winningForce:
 			return winningForce
 
@@ -56,12 +57,21 @@ class Wildfire:
 				if board.pointToValue(point) == 0:
 					return point
 	
+	def forceCheck(self, board, n, movesLeft):
+		self.forceCache = {}
+		return self.forceCheckRec(board, n, movesLeft)
+
 	def forceCheckRec(self, board, n, movesLeft):
 
+		if self.forceCache.has_key(board.hash()):
+			return self.forceCache[board.hash()]
+
 		if self.winningMove(board, n):
+			self.forceCache[board.hash()] = self.winningMove(board, n)
 			return self.winningMove(board, n)
 
 		if self.winningMove(board, board.otherNumber(n)) or movesLeft == 0:
+			self.forceCache[board.hash()] = 0
 			return 0
 
 		possibleForces =  board.findLines(n, 2)
@@ -77,6 +87,7 @@ class Wildfire:
 			board.clearPoint(openSpots[1])
 
 			if success:
+				self.forceCache[board.hash()] = openSpots[1]
 				return openSpots[0]
 			
 			board.move(n, openSpots[1])
@@ -86,6 +97,7 @@ class Wildfire:
 			board.clearPoint(openSpots[0])
 			board.clearPoint(openSpots[1])
 			if success:
+				self.forceCache[board.hash()] = openSpots[1]
 				return openSpots[1]
 
 		return 0
@@ -94,9 +106,9 @@ class Wildfire:
 		score = 0
 		score += len(board.findLines(n,1))
 		score += 2 * len(board.findLines(n,2))
-		score += 20 * (self.forceCheckRec(board, n, self.MAX_FORCES-2) != 0)
+		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES) != 0)
 
-		if self.forceCheckRec(board, board.otherNumber(n), self.MAX_FORCES-2) != 0:
+		if self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES) != 0:
 			return 0
 
 		return score

@@ -491,6 +491,10 @@ class Board:
 		""" convert a single point to a value """
 		return self.b[p[0]][p[1]][p[2]]
 
+	def hash(self):
+		""" this is bad and gross. probably fix later"""
+		return sum([2**i * (self.b[i%4][(i/4) % 4][i/16]-1) for i in range(64)])
+
 
 
 
