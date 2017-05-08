@@ -45,7 +45,7 @@ class Master:
 				pygame.time.wait(10)
 				i += 1 # WHOOOPS FORGOT THIS
 
-			nextMove = players[self.n-1].move(self.b, self.n, self.d)
+			nextMove = players[self.n].move(self.b, self.n, self.d)
 			noProblem = self.b.move(self.n,nextMove)
 
 			if not noProblem:
@@ -132,8 +132,8 @@ class Master:
 
 tryTo = Master()
 player1 = Wildfire(tryTo.b,1)
-player2 = Vaapad(tryTo.b,2)
-tryTo.playGame([player1,player2],1)
+player2 = Human(tryTo.b,2)
+tryTo.playGame([None,player1,player2],1)
 
 
 
