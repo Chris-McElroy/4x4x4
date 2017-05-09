@@ -119,3 +119,7 @@ class Wildfire:
 			return 0
 
 		return score
+
+	def colors(self):
+		""" returns the colors of grey """
+		return [(255, 255, 255),(150, 150, 150)]

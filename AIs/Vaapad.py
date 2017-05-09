@@ -316,5 +316,9 @@ class Vaapad:
 
 		return mark
 
+	def colors(self):
+		""" returns the colors of vaapad """
+		return [(150,0,230),(80, 0, 130)]
+
 
 

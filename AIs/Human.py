@@ -31,6 +31,9 @@ class Human:
 
 		return move
 
+	def colors(self):
+		""" returns the colors of humans """
+		return [(0, 30, 255),(0, 255, 20)]
 
 
 

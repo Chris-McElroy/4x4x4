@@ -23,11 +23,11 @@ class Master:
 		""" yano it does some shit """
 
 		displayOn = True
-		self.d = Display(self.b)
+		self.d = Display(self.b,self.AIList,[None, None, None])
 
 		while displayOn:
 
-			players = self.d.mainMenu(self.AIList)
+			players = self.d.mainMenu()
 
 			# setsN = raw_input("First to what?")
 			
@@ -59,7 +59,7 @@ class Master:
 		"""
 
 		self.b = Board()
-		self.d = Display(self.b)
+		self.d = Display(self.b,self.AIList,players)
 		self.d.initializeBoard()
 		continueGame = True
 		self.forced = False

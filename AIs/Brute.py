@@ -26,7 +26,7 @@ class Brute:
 					if board.pointToValue(point) == 0:
 						return point
 
-		openPoints = board.getOpenPoints()
+		openPoints = board.openPoints()
 		return self.chooseMove(openPoints)
 
 
@@ -39,6 +39,6 @@ class Brute:
 
 		return random.choice(list(moves))
 
-	def color(self):
-		""" returns the color of brute """
-		return (131, 32, 0)
+	def colors(self):
+		""" returns the colors of brute """
+		return [(100, 30, 0),(100, 30, 0)]

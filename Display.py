@@ -11,7 +11,7 @@ class Display:
 	""" Displays the board """
 
 	#constructor	
-	def __init__(self, board):
+	def __init__(self, board, AIs, players):
 		""" gets variables set up """
 
 		self.dir = 1 # direction to view board, can be 1-6
@@ -28,8 +28,10 @@ class Display:
 		self.win_n = 0
 		self.titleText = ""
 		self.winningMove = False
+		self.AIList = AIs
+		self.players = players
 
-	def mainMenu(self,AIList):
+	def mainMenu(self):
 		""" displays and checks for the main menu """
 
 		pygame.init()
@@ -38,14 +40,17 @@ class Display:
 		text = "Welcome to 4x4x4 Tic Tac Toe!"
 		self.title(text + "  Please select 2 players below!")
 
-		buttons = self.createButtons(AIList)
+		buttons = self.createButtons()
+
+		colorSet = [None]
+		for i in range(len(self.AIList)-1):
+			colorSet += [self.AIList[i+1]().colors()]
 
 		inMenu = True
-		players = [None, None, None]
 		while inMenu:
-			start = self.checkMenu(players, AIList, buttons,text)
+			start = self.checkMenu(buttons,text)
 			if start:
-				return players
+				return self.players
 
 			self.gameDisplay.fill((0,0,0))
 
@@ -53,17 +58,17 @@ class Display:
 			self.displayText("Player 1:",22,(200,150))
 			self.displayText("Player 2:",22,(600,150))
 
-			self.displayButtons(AIList, players, buttons)
+			self.displayButtons(buttons,colorSet)
 			
 			pygame.display.update()
-			pygame.time.wait(15)
+			pygame.time.wait(10)
 
-	def createButtons(self,AIList):
+	def createButtons(self):
 		""" returns the rectangles holding the buttons """
 		buttons = [[None],[None]]
 		for LR in range(2):
 			yPos = 120
-			for AI in AIList[1:]:
+			for AI in self.AIList[1:]:
 				xPos = 100 if LR == 0 else 500
 				yPos += 52
 				dims = (200,50)
@@ -72,7 +77,7 @@ class Display:
 		buttons += [pygame.Rect((350,400),(100,100))]
 		return buttons
 
-	def checkMenu(self, players, AIList, buttons, text):
+	def checkMenu(self, buttons, text):
 		""" checks for button presses in the menu """
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -83,13 +88,13 @@ class Display:
 
 				# check if the AIs are selected
 				for LR in range(2):
-					for i in range(len(AIList)-1):
+					for i in range(len(self.AIList)-1):
 						if buttons[LR][i+1].collidepoint(pos):
-							players[LR+1] = AIList[i+1]()
-							self.title(text + "   " + AIList[i+1].__name__ + " player selected.")
+							self.players[LR+1] = self.AIList[i+1]()
+							self.title(text + "   " + self.AIList[i+1].__name__ + " player selected.")
 
 				# check if the Go button is clicked
-				if buttons[2].collidepoint(pos) and players[1] and players[2]:
+				if buttons[2].collidepoint(pos) and self.players[1] and self.players[2]:
 					return True
 		return False
 
@@ -118,7 +123,7 @@ class Display:
 			self.displayExit(buttons,options)
 			
 			pygame.display.update()
-			pygame.time.wait(15)
+			pygame.time.wait(5)
 
 	def checkExit(self,buttons,options):
 		""" checks the exit """
@@ -129,7 +134,7 @@ class Display:
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
 
-				# check if the AIs are selected
+				# check if the buttons are selected
 				for i in range(len(options)):
 					if buttons[i].collidepoint(pos):
 						choice = options[i]
@@ -154,25 +159,30 @@ class Display:
 	def displayExit(self,buttons,options):
 		""" displays the exit """
 
-		colors = [(0,0,255),(0,0,255),(0,0,255)]
+		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(180,0,0),(255,0,0)]]
+		pos = pygame.mouse.get_pos()
 
 		for i in range(len(options)):
-			pygame.draw.rect(self.gameDisplay, colors[i], buttons[i])
+			colorN = 0
+			if buttons[i].collidepoint(pos):
+				colorN = 1
+			pygame.draw.rect(self.gameDisplay, colors[i][colorN], buttons[i])
 			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
 
-	def displayButtons(self, AIList, players, buttons):
+	def displayButtons(self, buttons, colorSet):
 		""" displays the buttons for the board """
 		for LR in range(2):
-			for i in range(len(AIList)-1):
-				pygame.draw.rect(self.gameDisplay, (0,0,255),buttons[LR][i+1])
+			for i in range(len(self.AIList)-1):
+				color = colorSet[i+1][LR]
+				pygame.draw.rect(self.gameDisplay, color,buttons[LR][i+1])
 
 		for LR in range(2):
-			for i in range(len(AIList)-1):
-				if isinstance(players[LR+1],AIList[i+1]):
+			for i in range(len(self.AIList)-1):
+				if isinstance(self.players[LR+1],self.AIList[i+1]):
 					pygame.draw.rect(self.gameDisplay, (255,255,255),buttons[LR][i+1], 5)
-				self.displayText(AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
+				self.displayText(self.AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
 
-		if players[1] and players[2]:
+		if self.players[1] and self.players[2]:
 			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2])
 			self.displayText("Go!", 30, (400, 450))
 
@@ -438,19 +448,20 @@ class Display:
 		glEnd()
 
 	def cubeColor(self,v):
-		color = (1,1,1)
-		if v == 1:
-			color = (0,1,0)
-		elif v == 2:
-			color = (0,1,1)
+		color = (255,255,255)
+		if v in [1,2]:
+			color = self.players[v].colors()[v-1]
 		elif v == 0:
-			color = (.2,.2,.2)
+			color = (50,50,50)
 		elif v == 3:
-			color = (1,0,0)
+			color = (255,0,0)
 		elif v == 4:
-			color = (1,1,0)
+			color = (255,255,0)
+		elif v in [5,6]:
+			n = v-4
+			color = self.players[n].colors()[board.otherNumber(n)-1]
 
-		return color
+		return (color[0]/255.0,color[1]/255.0,color[2]/255.0)
 
 	def createRects(self):
 		""" creates all the rectangles for clicking """
