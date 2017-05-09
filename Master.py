@@ -121,7 +121,7 @@ class Master:
 				i += 1 # WHOOOPS FORGOT THIS
 
 		elif len(checks) > 0:
-			checkPoints = self.b.lineToPoints(checks[0])
+			checkPoints = self.b.lineToPoints(next(iter(checks)))
 			checkString = ""
 			for point in checkPoints:
 				if self.b.pointToValue(point) == 0:

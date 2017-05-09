@@ -7,7 +7,23 @@ class Board:
 	def __init__(self):
 		""" Creates original Board """
 		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-		#self.currentLines = [[range(76)],[[][][][]],[[][][][]]]
+
+
+		self.currentLines = {}
+		for playerNum in [1,2]:
+			for numPoints in [1,2,3,4]:
+				self.currentLines[(playerNum, numPoints)] = set()
+
+		self.currentLines[0] = set()
+		for i in range(76):
+			self.currentLines[0].add(i)
+
+
+		self.openPoints = set()
+		for i in range(4):
+			for j in range(4):
+				for k in range(4):
+					self.openPoints.add((i,j,k))
 
 	# make, check and clear moves
 	def clearBoard(self):
@@ -26,19 +42,11 @@ class Board:
 				for z in range(4):
 					self.b[x][y][z] = b.b[x][y][z]
 
-	def openPoints(self):
+	def getOpenPoints(self):
 		"""
 		Return a list of all open points on the board
 		"""
-		return self.currentLines[0]
-		points = []
-		for i in range(4):
-			for j in range(4):
-				for k in range(4):
-					current = self.b[i][j][k]
-					if (current == 0):
-						points += [[i,j,k]]
-		return points
+		return self.openPoints
 
 	def myPoints(self, n):
 		"""
@@ -84,16 +92,55 @@ class Board:
 		current = self.b[p[0]][p[1]][p[2]]
 		if (current == 0):
 			self.b[p[0]][p[1]][p[2]] = n
+			self.updateLines(n, p)
+			self.openPoints.remove(tuple(p))
 			return True
 		else:
 			return False
 
 	def clearPoint(self,p):
-			""" clears a move, returns the previous value there"""
+			""" clears a move, returns the previous value there
+			WARNING: THIS FUNCTION CURRENTLY DOES NOT UDPATE LINES"""
 
 			previous = self.b[p[0]][p[1]][p[2]]
 			self.b[p[0]][p[1]][p[2]] = 0
+
+			if previous != 0:
+				self.openPoints.add(tuple(p))
+				self.updateLines(previous, p)
 			return previous
+
+	def updateLines(self, n, p):
+		""" updates the important lines after each move"""
+		o = self.otherNumber(n)
+
+		for line in self.linesForPoint(list(p)):
+			values = self.lineToValues(line)
+			playerMoves = values.count(n)
+			otherMoves = values.count(o)
+			# print line, playerMoves, otherMoves
+
+			# if we just removed a point (it's currently 0)
+			if self.pointToValue(p) == 0:
+				if otherMoves == 0 and playerMoves == 0:
+					self.currentLines[0].add(line)
+					self.currentLines[(n, 1)].remove(line)
+				elif otherMoves == 0:
+					self.currentLines[(n, playerMoves+1)].remove(line)
+					self.currentLines[(n, playerMoves)].add(line)
+				elif playerMoves == 0:
+					self.currentLines[(o, otherMoves)].add(line)
+			# Otherwise we just added a point, and update accordingly
+			else:
+				if playerMoves == 1 and otherMoves == 0:
+					self.currentLines[0].remove(line)
+					self.currentLines[(n, 1)].add(line)
+				elif playerMoves == 1:
+					self.currentLines[(o, otherMoves)].remove(line)
+				elif otherMoves == 0:
+					self.currentLines[(n, playerMoves-1)].remove(line)
+					self.currentLines[(n, playerMoves)].add(line)
+
 
 	# Find lines
 	def findLinesInit(self, n):
@@ -121,7 +168,7 @@ class Board:
 
 	def findLines(self, n, num):
 		""" old find lines but faster """
-		return self.currentLines[n][num-1]
+		return self.currentLines[(n, num)]
 
 	def findRows(self, n, num):
 		"""
