@@ -7,7 +7,7 @@ class Board:
 	def __init__(self):
 		""" Creates original Board """
 		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-		self.currentLines = [[range(76)],[[][][][]],[[][][][]]]
+		#self.currentLines = [[range(76)],[[][][][]],[[][][][]]]
 
 	# make, check and clear moves
 	def clearBoard(self):

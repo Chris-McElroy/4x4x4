@@ -13,24 +13,26 @@ class Master:
 	def __init__(self):
 		""" Creates display and initial menu """
 		self.b = Board()
-		self.d = Display(self.b)
+		self.d = None
 		self.n = 0
 		self.forced = False
 		self.wins = [0,0]
-		self.currentAIList = [None,Human,Wildfire,Vaapad]
+		self.AIList = [None,Human,Wildfire,Vaapad]
 
 	def main(self):
 		""" yano it does some shit """
 
 		displayOn = True
+		self.d = Display(self.b)
+		self.d.mainMenu(self.AIList)
+
+		self.d.title("Welcome to Tic Tac Toe! Please select 2 players below!")
+
 		while displayOn:
-			print "hi we're gnna play things now"
 			playersN = raw_input("Choose your players! Enter 1 for human, 2 for Wildfire, 3 for Vaapad\n")
 			players = [None]
 			for i in range(2):
-				players += [self.currentAIList[int(playersN[i])]()]
-				print playersN
-				print players
+				players += [self.AIList[int(playersN[i])]()]
 
 			# setsN = raw_input("First to what?")
 			
@@ -156,9 +158,12 @@ class Master:
 		return checkMate
 
 tryTo = Master()
+
 tryTo.main()
-# player1 = Vaapad(tryTo.b,1)
-# # player2 = Vaapad(tryTo.b,2)
+
+# tryTo.d = Display(tryTo.b)
+# player1 = Vaapad()
+# player2 = Vaapad()
 # tryTo.playGame([None,player1,player2],1)
 
 

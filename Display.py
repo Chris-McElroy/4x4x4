@@ -1,3 +1,4 @@
+import sys
 import pygame
 from pygame.locals import *
 
@@ -27,6 +28,59 @@ class Display:
 		self.win_n = 0
 		self.titleText = ""
 		self.winningMove = False
+
+	def mainMenu(self,AIList):
+		""" displays and checks for the main menu """
+
+		pygame.init()
+
+		screen=pygame.display.set_mode((800,600),0,32)
+
+		clock = pygame.time.Clock()
+		background = pygame.Surface((800,600))
+		#background = background.convert()
+		background.fill((0, 0, 0))
+
+		display = (800,600)
+ 
+		gameDisplay = pygame.display.set_mode(display)
+
+		while True:
+			for event in pygame.event.get():
+				print(event)
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					quit()
+
+			gameDisplay.fill((0,0,0))
+			
+			pygame.display.update()
+			pygame.time.wait(15)
+
+
+		# pygame.init()
+		# display = (800,600)
+		# self.gameDisplay = pygame.display.set_mode(display)
+		# text = "Welcome to 4x4x4 Tic Tac Toe!"
+
+		# i = 0
+		# while i < 10:
+		# 	self.message_display(text)
+		# 	pygame.time.wait(10)
+		# 	i += 1 # WHOOOPS FORGOT THIS
+
+	def message_display(self,text):
+		half_display = (400,300)
+		self.gameDisplay.fill((0,255,255))
+		largeText = pygame.font.Font('freesansbold.ttf',36)
+		TextSurf, TextRect = self.text_objects(text, largeText)
+		TextRect.center = half_display
+		self.gameDisplay.blit(TextSurf, TextRect)
+		pygame.display.update()
+
+	def text_objects(self,text, font):
+		textSurface = font.render(text, True, (0,0,0))
+		return textSurface, textSurface.get_rect()
 
 	def initializeBoard(self):
 		""" prepares to display board """
@@ -330,9 +384,4 @@ class Display:
 	def setWinningMove(self,p):
 		""" sets the winning move """
 		self.winningMove = p
-
-
-newB = Board()
-newD = Display(newB)
-newD.initializeBoard()
 
