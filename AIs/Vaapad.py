@@ -1,4 +1,5 @@
 from Board import *
+from Brute import *
 import random
 
 class Vaapad:
@@ -8,7 +9,7 @@ class Vaapad:
 
 	def __init__(self):
 		""" Stores board and player info for easy access """
-		self.b = None # Board object, not array
+		self.b = Board() # Board object, not array
 		self.n = 0
 		self.o = 0
 		#self.moves = self.b.openPoints()
@@ -16,7 +17,7 @@ class Vaapad:
 		self.assured = False
 		self.d = None
 
-		self.undecided = [-1, -1, -1]
+		self.undecided = False
 		self.ply = 4
 
 	def move(self,board,n, display):
@@ -26,12 +27,13 @@ class Vaapad:
 
 		self.updateAll(board,n,display)
 
-		other = Vaapad()
-
 		# check for four in a row on both sides
 		move = self.assuredMove()
 		if self.decided:
 			return move
+
+		other = Vaapad()
+		other.updateAll(self.b,self.o,self.d)
 
 		other.lookAhead()
 		#if other.assured: # checks for their strong lookahead
@@ -54,17 +56,17 @@ class Vaapad:
 		return self.undecided
 
 	def assuredMove(self):
-		other = Vaapad()
-		self.decided, self.assured, other.decided, other.assured = (False,)*4
+
+		self.decided, self.assured = (False,)*2
 
 		# check for four in a row on both sides
-		move0 = self.fourInARow()
+		move0 = self.fourInARow(self.n)
 		if self.assured:
 			print "I have the win\n"
 			return move0
 
-		move1 = other.fourInARow()
-		if other.assured:
+		move1 = self.fourInARow(self.o)
+		if move1:
 			self.decided = True
 			return move1
 
@@ -79,21 +81,21 @@ class Vaapad:
 		
 		return move4
 
-	def fourInARow(self):
+	def fourInARow(self,n):
 		""" check if there's anywhere self could go to get four in a row """
 
 		winningMoves = []
-		lines = self.b.findLines(self.n,3)
+		lines = self.b.findLines(n,3)
 
 		if (len(lines) > 0):
 			self.assured = True
 			self.decided = True
 			for l in lines:
-				values = self.b.lineToValues(l)
-				for i in range(4): # double counts double 4-in-a-rows bc hell yeah
-					if values[i] == 0:
-						move = self.b.lineToPoints(l)[i]
-						winningMoves += [move]
+				points = self.b.lineToPoints(l)
+				for i in range(4): 
+					if self.b.pointToValue(points[i]) == 0:
+						move = points[i]
+						winningMoves += [move] # double counts double 4-in-a-rows bc hell yeah
 
 		return self.chooseMove(winningMoves)
 
@@ -139,7 +141,7 @@ class Vaapad:
 		allowedPairs = range(lenPairs)
 		allowedIndex = range(2)
 
-		if otherChecks != []:
+		if len(otherChecks) > 0:
 			checkLine = self.b.lineToPoints(otherChecks[0])
 			for p in checkLine:
 				if newAI.b.pointToValue(p) == 0:
@@ -157,14 +159,13 @@ class Vaapad:
 					pairN += 1
 				if i == 0:
 					i = 1
-				if pairN > lenPairs:
+				if pairN == lenPairs:
 					return moves # fucking give the fuck up
 
 		for pairN in allowedPairs:
 			for i in allowedIndex:
-				newBoard = Board()
 				newAI = Vaapad()
-				newAI.b.copyBoard(self.b)
+				mewAI.updateAll(self.b,self.n,self.d)
 				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:
 					moves += [pairs[pairN][i]]
@@ -215,7 +216,10 @@ class Vaapad:
 
 		# god opening
 		moves = [(1,1,1),(0,3,0),(1,2,2),(2,2,2),(3,2,3)]
-		openPoints = self.b.getOpenPoints()
+		openPoints = self.b.openPoints()
+		if self.n == 2:
+			print numMoves
+			print openPoints
 		if numMoves < len(moves):
 			if moves[numMoves] in openPoints:
 				return moves[numMoves]
@@ -252,11 +256,11 @@ class Vaapad:
 
 		self.updateWinsForPoint(pair,myNum)
 
-	def updateAll(self, board, n):
+	def updateAll(self, board, n, display):
 		"""
 		Updates all pairs, moves and lines for the current board
 		"""
-		self.b = board # Board object, not array
+		self.b.copyBoard(board) # Board object, not array
 		self.n = n
 		self.d = display
 		self.o = self.b.otherNumber(self.n)
