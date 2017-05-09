@@ -6,9 +6,8 @@ import random
 class Wildfire:
 	""" functions as the player for a real life person """
 
-	def __init__(self, currentBoard, playerNumber):
+	def __init__(self):
 		""" Stores player info for easy access """
-		self.n = playerNumber
 		self.MAX_FORCES = 7
 		self.forceCache = {}
 
@@ -30,9 +29,10 @@ class Wildfire:
 		bestScore = 0
 		bestMoves = []
 		i = 0
-		for point in board.openPoints():
+		for point in board.getOpenPoints():
 			i += 1
-			print "try" + str(i) + "/" + str(len(board.openPoints()))
+			print "try" + str(i) + "/" + str(len(board.getOpenPoints()))
+
 			board.move(n, point)
 			score = self.evaluatePosition(board, n)
 			board.clearPoint(point)
@@ -54,9 +54,9 @@ class Wildfire:
 		return move
 
 	def winningMove(self, board, n):
-		forces = board.findLines(n, 3)
+		forces = board.findLines(n, 3).copy()
 		if len(forces) > 0:
-			for point in board.lineToPoints(forces[0]):
+			for point in board.lineToPoints(next(iter(forces))):
 				if board.pointToValue(point) == 0:
 					return point
 	
@@ -89,6 +89,9 @@ class Wildfire:
 			board.clearPoint(openSpots[0])
 			board.clearPoint(openSpots[1])
 
+			# we don't have getters or setters because this is sus
+			# kids, don't do this at home
+
 			if success:
 				self.forceCache[board.hash()] = openSpots[1]
 				return openSpots[0]
@@ -99,6 +102,7 @@ class Wildfire:
 			success = self.forceCheckRec(board, n, movesLeft-1)
 			board.clearPoint(openSpots[0])
 			board.clearPoint(openSpots[1])
+
 			if success:
 				self.forceCache[board.hash()] = openSpots[1]
 				return openSpots[1]

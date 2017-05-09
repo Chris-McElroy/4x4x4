@@ -27,7 +27,7 @@ class Human:
 			display.displayBoard()
 			move = display.getMove()
 
-			if move in board.openPoints():
+			if move and tuple(move) in board.getOpenPoints():
 				goodInput = True
 			elif move:
 				print "Bad input, try again!"
