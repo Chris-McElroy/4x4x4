@@ -14,6 +14,7 @@ class Vaapad:
 		#self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False
+		self.d = None
 
 		self.undecided = [-1, -1, -1]
 		self.ply = 4
@@ -23,7 +24,7 @@ class Vaapad:
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
 
-		self.updateAll(board,n)
+		self.updateAll(board,n,display)
 
 		other = Vaapad()
 
@@ -213,8 +214,15 @@ class Vaapad:
 		# moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,0],[0,0,1],[3,3,3]]
 
 		# god opening
-		moves = [[1,1,1],[0,3,0],[1,2,2],[2,2,2],[3,2,3]]
-		return moves[numMoves]
+		moves = [(1,1,1),(0,3,0),(1,2,2),(2,2,2),(3,2,3)]
+		openPoints = self.b.getOpenPoints()
+		if numMoves < len(moves):
+			if moves[numMoves] in openPoints:
+				return moves[numMoves]
+
+		lilHelper = Brute()
+		return lilHelper.move(self.b,self.n,self.d)
+
 
 		currentPly = self.ply
 		#currentMoves = self.moves
@@ -250,6 +258,7 @@ class Vaapad:
 		"""
 		self.b = board # Board object, not array
 		self.n = n
+		self.d = display
 		self.o = self.b.otherNumber(self.n)
 		#self.moves = self.b.openPoints()
 		self.decided = False

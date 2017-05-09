@@ -3,8 +3,8 @@ from Display import *
 from AIs.Vaapad import *
 from AIs.Wildfire import *
 from AIs.Human import *
+from AIs.Brute import *
 import time
-import sys
 
 class Master:
 	""" controls everything going on """
@@ -17,7 +17,7 @@ class Master:
 		self.n = 0
 		self.forced = False
 		self.wins = [0,0]
-		self.AIList = [None,Human,Wildfire,Vaapad]
+		self.AIList = [None,Human,Wildfire,Vaapad,Brute]
 
 	def main(self):
 		""" yano it does some shit """
@@ -36,8 +36,20 @@ class Master:
 			currentSet = True
 			while currentSet:
 				self.playGame(players)
-				keepPlaying = self.d.playAgain()
-			displayOn = False
+				choice = self.d.playAgain()
+				if choice == "Play Again":
+					5
+					# tally up who won and display that somehow
+
+				if choice == "Switch Players":
+					currentSet = False
+
+				if choice == "Quit":
+					currentSet = False
+					displayOn = False
+
+		pygame.quit()
+		quit(0)
 
 	def playGame(self, players):
 		"""
@@ -46,7 +58,8 @@ class Master:
 		player 1 is X's, player 2 is O's
 		"""
 
-		self.b.clearBoard()
+		self.b = Board()
+		self.d = Display(self.b)
 		self.d.initializeBoard()
 		continueGame = True
 		self.forced = False
@@ -76,10 +89,6 @@ class Master:
 			continueGame = self.checkBoard(nextMove)
 
 			self.n = self.b.otherNumber(self.n)
-
-		print "Game Over \n"
-		pygame.quit()
-		quit()
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """

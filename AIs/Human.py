@@ -1,17 +1,10 @@
 import pygame
-from pygame.locals import *
-
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
-import time
 
 class Human:
 	""" functions as the player for a real life person """
 
 	def __init__(self):
 		""" Stores player info for easy access """
-		print "Double click to move!"
 
 	def move(self,board,n,display):
 		"""
@@ -20,10 +13,12 @@ class Human:
 
 		move = False
 		goodInput = False
+		n = 0
 
 		while not goodInput:
 			pygame.time.wait(10)
 
+			display.displayProgress("lol: ",n%100)
 			display.displayBoard()
 			move = display.getMove()
 
@@ -31,6 +26,8 @@ class Human:
 				goodInput = True
 			elif move:
 				print "Bad input, try again!"
+
+			n+= 1
 
 		return move
 

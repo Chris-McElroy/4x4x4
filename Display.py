@@ -35,22 +35,23 @@ class Display:
 		pygame.init()
 		display = (800,600)
 		self.gameDisplay = pygame.display.set_mode(display)
-		self.title("Welcome to Tic Tac Toe! Please select 2 players below!")
+		text = "Welcome to 4x4x4 Tic Tac Toe!"
+		self.title(text + "  Please select 2 players below!")
 
 		buttons = self.createButtons(AIList)
 
 		inMenu = True
 		players = [None, None, None]
 		while inMenu:
-			start = self.checkMenu(players, AIList, buttons)
+			start = self.checkMenu(players, AIList, buttons,text)
 			if start:
 				return players
 
 			self.gameDisplay.fill((0,0,0))
 
-
-			text = "Welcome to 4x4x4 Tic Tac Toe!"
 			self.displayText(text,35,(400,100))
+			self.displayText("Player 1:",22,(200,210))
+			self.displayText("Player 2:",22,(600,210))
 
 			self.displayButtons(AIList, players, buttons)
 			
@@ -67,10 +68,11 @@ class Display:
 				yPos += 100
 				dims = (200,50)
 				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
+
+		buttons += [pygame.Rect((350,400),(100,100))]
 		return buttons
 
-
-	def checkMenu(self, players, AIList, buttons):
+	def checkMenu(self, players, AIList, buttons, text):
 		""" checks for button presses in the menu """
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -83,36 +85,97 @@ class Display:
 				for LR in range(2):
 					for i in range(len(AIList)-1):
 						if buttons[LR][i+1].collidepoint(pos):
-							players[LR] = AIList[i+1]
-							self.title("Welcome to 4x4x4 Tic Tac Toe!  " + players[LR].__name__ + " player selected.")
+							players[LR+1] = AIList[i+1]()
+							self.title(text + "   " + AIList[i+1].__name__ + " player selected.")
 
 				# check if the Go button is clicked
-				if pygame.Rect((350,400),(100,100)).collidepoint(pos) and len(players) == 3:
+				if buttons[2].collidepoint(pos) and players[1] and players[2]:
 					return True
 		return False
 
+	def playAgain(self):
+		""" asks the user if they'd like to play again """
+
+		pygame.init()
+		display = (800,600)
+		self.gameDisplay = pygame.display.set_mode(display)
+		text = "Thanks for playing!"
+		self.title(text)
+
+		buttons,options = self.exitButtons()
+
+		inMenu = True
+		choice = None
+		while inMenu:
+			choice = self.checkExit(buttons,options)
+			if choice:
+				return choice
+
+			self.gameDisplay.fill((0,0,0))
+
+			self.displayText(text,35,(400,100))
+
+			self.displayExit(buttons,options)
+			
+			pygame.display.update()
+			pygame.time.wait(15)
+
+	def checkExit(self,buttons,options):
+		""" checks the exit """
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+
+				# check if the AIs are selected
+				for i in range(len(options)):
+					if buttons[i].collidepoint(pos):
+						choice = options[i]
+						return choice
+
+		return False
+
+	def exitButtons(self):
+		""" create the exit buttons """
+
+		buttons = []
+		options = ["Play Again", "Switch Players", "Quit"]
+		yPos = 150
+		xPos = 300
+		for butt in options:
+			yPos += 100
+			dims = (200,70)
+			buttons += [pygame.Rect((xPos,yPos),dims)]
+
+		return buttons,options
+
+	def displayExit(self,buttons,options):
+		""" displays the exit """
+
+		colors = [(0,0,255),(0,0,255),(0,0,255)]
+
+		for i in range(len(options)):
+			pygame.draw.rect(self.gameDisplay, colors[i], buttons[i])
+			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
 
 	def displayButtons(self, AIList, players, buttons):
 		""" displays the buttons for the board """
 		for LR in range(2):
-			yPos = 150
-			for AI in AIList[1:]:
-				xPos = 100 if LR == 0 else 500
-				yPos += 100
-				dims = (200,50)
-				pygame.draw.rect(self.gameDisplay, (0,0,255),((xPos,yPos),dims))
-				if AI == players[LR]:
-					pygame.draw.rect(self.gameDisplay, (255,255,255),((xPos,yPos),dims), 5)
-				self.displayText(AI.__name__, 20, (xPos+100, yPos+25))
+			for i in range(len(AIList)-1):
+				pygame.draw.rect(self.gameDisplay, (0,0,255),buttons[LR][i+1])
+				if isinstance(players[LR+1],AIList[i+1]):
+					pygame.draw.rect(self.gameDisplay, (255,255,255),buttons[LR][i+1], 5)
+				self.displayText(AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
 
-		if players[0] and players[1]:
-			pygame.draw.rect(self.gameDisplay, (0,255,0),((350,400),(100,100)))
+		if players[1] and players[2]:
+			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2])
 			self.displayText("Go!", 30, (400, 450))
 
-
-	def displayText(self,text,size,center):
+	def displayText(self,text,size,center,color = (255,255,255)):
 		largeText = pygame.font.Font('freesansbold.ttf',size)
-		text = largeText.render(text, True, (255, 255, 255))
+		text = largeText.render(text, True, color)
 		textR = text.get_rect()
 		textR.center = (center)
 		self.gameDisplay.blit(text, textR)
@@ -243,6 +306,16 @@ class Display:
 		pygame.display.set_caption(string)
 		self.titleText = string
 
+	def displayProgress(self,string,percent):
+		""" displays the progress bar and a short description """
+		if string == None:
+			self.title(self.titleText)
+		oldText = self.titleText
+		addedSpace = " "*(145-len(oldText+string))
+		completed = "|" + " "*(percent/3)
+		todo = " "*(33-percent/3) + "|"
+		pygame.display.set_caption(oldText+addedSpace+string+completed+"=>"+todo)
+
 	def displayPieces(self):
 		""" displays all the pieces on the board """
 
@@ -298,22 +371,22 @@ class Display:
 		points = []
 
 		if self.dir == 1:
-			points = [[i,3-k,3-j] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(i,3-k,3-j) for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 2:
-			points = [[3-k,3-i,3-j] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(3-k,3-i,3-j) for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 3:
-			points = [[3-i,k,3-j] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(3-i,k,3-j) for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 4:
-			points = [[k,i,3-j] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(k,i,3-j) for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 5:
-			points = [[i,j,3-k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(i,j,3-k) for i in range(4) for j in range(4) for k in range(4)]
 
 		elif self.dir == 6:
-			points = [[3-i,j,k] for i in range(4) for j in range(4) for k in range(4)]
+			points = [(3-i,j,k) for i in range(4) for j in range(4) for k in range(4)]
 
 		return points
 
@@ -419,4 +492,6 @@ class Display:
 	def setWinningMove(self,p):
 		""" sets the winning move """
 		self.winningMove = p
+
+
 
