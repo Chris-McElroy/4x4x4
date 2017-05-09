@@ -24,7 +24,14 @@ class Master:
 
 		displayOn = True
 		self.d = Display(self.b)
-		self.d.mainMenu(self.AIList)
+
+		while True:
+			[players, numGames] = self.d.mainMenu(self.AIList)
+
+			for i in range(numGames):
+				self.playGame([None, players[0](),players[1]()], 1)
+
+
 
 		self.d.title("Welcome to Tic Tac Toe! Please select 2 players below!")
 
@@ -159,12 +166,12 @@ class Master:
 
 tryTo = Master()
 
-#tryTo.main()
+tryTo.main()
 
-tryTo.d = Display(tryTo.b)
-player1 = Wildfire()
-player2 = Wildfire()
-tryTo.playGame([None,player1,player2],1)
+# tryTo.d = Display(tryTo.b)
+# player1 = Wildfire()
+# player2 = Wildfire()
+# tryTo.playGame([None,player1,player2],1)
 
 
 

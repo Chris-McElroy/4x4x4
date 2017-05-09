@@ -37,8 +37,11 @@ class Display:
 		self.gameDisplay = pygame.display.set_mode(display)
 
 		inMenu = True
+		players = [None, None]
 		while inMenu:
-			players, p1, numGames = self.checkMenu()
+			start = self.checkMenu(players, AIList)
+			if start:
+				return [players, 1]
 
 			self.gameDisplay.fill((0,0,0))
 
@@ -46,29 +49,54 @@ class Display:
 			text = "Welcome to 4x4x4 Tic Tac Toe!"
 			self.displayText(text,35,(400,100))
 
-			self.displayButtons(AIList)
+			self.displayButtons(AIList, players)
 			
 			pygame.display.update()
 			pygame.time.wait(15)
 
-	def checkMenu(self):
+	def checkMenu(self, players, AIList):
 		""" checks for button presses in the menu """
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
 
-		return [0,0,0]
+				# check if the AIs are selected
+				for LR in range(2):
+					yPos = 150
+					for AI in AIList[1:]:
+						xPos = 100 if LR == 0 else 500
+						yPos += 100
+						dims = (200,50)
+						if pygame.Rect((xPos, yPos), dims).collidepoint(pos):
+							players[LR] = AI
+							print "player", AI.__name__, "selected"
 
-	def displayButtons(self, AIList):
+				# check if the Go button is clicked
+				if pygame.Rect((350,400),(100,100)).collidepoint(pos):
+					return True
+		return False
+
+
+	def displayButtons(self, AIList, players):
 		""" displays the buttons for the board """
 		for LR in range(2):
 			yPos = 150
-			for AI in range(len(AIList)-1):
-				xPos = 100 if LR == 0 else 600
+			for AI in AIList[1:]:
+				xPos = 100 if LR == 0 else 500
 				yPos += 100
 				dims = (200,50)
-				pygame.draw.rect(self.gameDisplay, (255,0,0),((xPos,yPos),dims))
+				pygame.draw.rect(self.gameDisplay, (0,0,255),((xPos,yPos),dims))
+				if AI == players[LR]:
+					pygame.draw.rect(self.gameDisplay, (255,255,255),((xPos,yPos),dims), 5)
+				self.displayText(AI.__name__, 20, (xPos+100, yPos+25))
+
+		if players[0] and players[1]:
+			pygame.draw.rect(self.gameDisplay, (0,255,0),((350,400),(100,100)))
+			self.displayText("Go!", 30, (400, 450))
+
 
 	def displayText(self,text,size,center):
 		largeText = pygame.font.Font('freesansbold.ttf',size)
