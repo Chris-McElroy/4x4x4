@@ -7,6 +7,7 @@ class Board:
 	def __init__(self):
 		""" Creates original Board """
 		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+		self.currentLines = [[range(76)],[[][][][]],[[][][][]]]
 
 	# make, check and clear moves
 	def clearBoard(self):
@@ -29,6 +30,7 @@ class Board:
 		"""
 		Return a list of all open points on the board
 		"""
+		return self.currentLines[0]
 		points = []
 		for i in range(4):
 			for j in range(4):
@@ -94,28 +96,32 @@ class Board:
 			return previous
 
 	# Find lines
-	def findLines(self, n,num):
+	def findLinesInit(self, n):
 		""" 
 		Checks all lines on the board, returns the line number
 		of all lines for which player n has at least num points,
 		but player !n has none.
 		"""
+		allLines = []
+		for num in range(4):
+			lines = []
+			for l in range(76):
+				values = self.lineToValues(l)
+				p1 = 0
+				p2 = 0
+				for v in values:
+					if (v == n):
+						p1 += 1
+					elif (v != 0):
+						p2 += 1
+				if (p1 == num and p2 == 0):
+					lines += [l]
+			allLines += [lines]
+		return allLines
 
-		lines = []
-
-		for l in range(76):
-			values = self.lineToValues(l)
-			p1 = 0
-			p2 = 0
-			for v in values:
-				if (v == n):
-					p1 += 1
-				elif (v != 0):
-					p2 += 1
-			if (p1 == num and p2 == 0):
-				lines += [l]
-
-		return lines
+	def findLines(self, n, num):
+		""" old find lines but faster """
+		return self.currentLines[n][num-1]
 
 	def findRows(self, n, num):
 		"""

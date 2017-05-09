@@ -25,7 +25,7 @@ class Vaapad:
 
 		self.updateAll(board,n)
 
-		other = Vaapad(self.b,self.o)
+		other = Vaapad()
 
 		# check for four in a row on both sides
 		move = self.assuredMove()
@@ -53,7 +53,7 @@ class Vaapad:
 		return self.undecided
 
 	def assuredMove(self):
-		other = Vaapad(self.b,self.o)
+		other = Vaapad()
 		self.decided, self.assured, other.decided, other.assured = (False,)*4
 
 		# check for four in a row on both sides
@@ -162,7 +162,7 @@ class Vaapad:
 		for pairN in allowedPairs:
 			for i in allowedIndex:
 				newBoard = Board()
-				newAI = Vaapad(newBoard,self.n)
+				newAI = Vaapad()
 				newAI.b.copyBoard(self.b)
 				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:

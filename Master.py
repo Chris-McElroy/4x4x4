@@ -42,8 +42,6 @@ class Master:
 				currentSet = False
 			displayOn = False
 
-
-
 	def playGame(self, players, p1):
 		"""
 		starts game between players 1 and 2
