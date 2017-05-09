@@ -25,21 +25,9 @@ class Master:
 		displayOn = True
 		self.d = Display(self.b)
 
-		while True:
-			[players, numGames] = self.d.mainMenu(self.AIList)
-
-			for i in range(numGames):
-				self.playGame([None, players[0](),players[1]()], 1)
-
-
-
-		self.d.title("Welcome to Tic Tac Toe! Please select 2 players below!")
-
 		while displayOn:
-			playersN = raw_input("Choose your players! Enter 1 for human, 2 for Wildfire, 3 for Vaapad\n")
-			players = [None]
-			for i in range(2):
-				players += [self.AIList[int(playersN[i])]()]
+
+			players = self.d.mainMenu(self.AIList)
 
 			# setsN = raw_input("First to what?")
 			
@@ -47,23 +35,22 @@ class Master:
 
 			currentSet = True
 			while currentSet:
-				self.playGame(players,1)
-				currentSet = False
+				self.playGame(players)
+				keepPlaying = self.d.playAgain()
 			displayOn = False
 
-	def playGame(self, players, p1):
+	def playGame(self, players):
 		"""
 		starts game between players 1 and 2
 		players holds both players, whether AI or real
 		player 1 is X's, player 2 is O's
-		p1 holds which player will play first
 		"""
 
 		self.b.clearBoard()
 		self.d.initializeBoard()
 		continueGame = True
 		self.forced = False
-		self.n = p1
+		self.n = 1
 
 		while (continueGame):
 			titleText = "Player " + str(self.n) + "'s Turn"

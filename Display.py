@@ -35,13 +35,16 @@ class Display:
 		pygame.init()
 		display = (800,600)
 		self.gameDisplay = pygame.display.set_mode(display)
+		self.title("Welcome to Tic Tac Toe! Please select 2 players below!")
+
+		buttons = self.createButtons(AIList)
 
 		inMenu = True
-		players = [None, None]
+		players = [None, None, None]
 		while inMenu:
-			start = self.checkMenu(players, AIList)
+			start = self.checkMenu(players, AIList, buttons)
 			if start:
-				return [players, 1]
+				return players
 
 			self.gameDisplay.fill((0,0,0))
 
@@ -49,12 +52,25 @@ class Display:
 			text = "Welcome to 4x4x4 Tic Tac Toe!"
 			self.displayText(text,35,(400,100))
 
-			self.displayButtons(AIList, players)
+			self.displayButtons(AIList, players, buttons)
 			
 			pygame.display.update()
 			pygame.time.wait(15)
 
-	def checkMenu(self, players, AIList):
+	def createButtons(self,AIList):
+		""" returns the rectangles holding the buttons """
+		buttons = [[None],[None]]
+		for LR in range(2):
+			yPos = 150
+			for AI in AIList[1:]:
+				xPos = 100 if LR == 0 else 500
+				yPos += 100
+				dims = (200,50)
+				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
+		return buttons
+
+
+	def checkMenu(self, players, AIList, buttons):
 		""" checks for button presses in the menu """
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -65,22 +81,18 @@ class Display:
 
 				# check if the AIs are selected
 				for LR in range(2):
-					yPos = 150
-					for AI in AIList[1:]:
-						xPos = 100 if LR == 0 else 500
-						yPos += 100
-						dims = (200,50)
-						if pygame.Rect((xPos, yPos), dims).collidepoint(pos):
-							players[LR] = AI
-							print "player", AI.__name__, "selected"
+					for i in range(len(AIList)-1):
+						if buttons[LR][i+1].collidepoint(pos):
+							players[LR] = AIList[i+1]
+							self.title("Welcome to 4x4x4 Tic Tac Toe!  " + players[LR].__name__ + " player selected.")
 
 				# check if the Go button is clicked
-				if pygame.Rect((350,400),(100,100)).collidepoint(pos):
+				if pygame.Rect((350,400),(100,100)).collidepoint(pos) and len(players) == 3:
 					return True
 		return False
 
 
-	def displayButtons(self, AIList, players):
+	def displayButtons(self, AIList, players, buttons):
 		""" displays the buttons for the board """
 		for LR in range(2):
 			yPos = 150
@@ -104,7 +116,6 @@ class Display:
 		textR = text.get_rect()
 		textR.center = (center)
 		self.gameDisplay.blit(text, textR)
-		
 
 	def initializeBoard(self):
 		""" prepares to display board """
