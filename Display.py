@@ -33,54 +33,50 @@ class Display:
 		""" displays and checks for the main menu """
 
 		pygame.init()
-
-		screen=pygame.display.set_mode((800,600),0,32)
-
-		clock = pygame.time.Clock()
-		background = pygame.Surface((800,600))
-		#background = background.convert()
-		background.fill((0, 0, 0))
-
 		display = (800,600)
- 
-		gameDisplay = pygame.display.set_mode(display)
+		self.gameDisplay = pygame.display.set_mode(display)
 
-		while True:
-			for event in pygame.event.get():
-				print(event)
-				if event.type == pygame.QUIT:
-					pygame.quit()
-					quit()
+		inMenu = True
+		while inMenu:
+			players, p1, numGames = self.checkMenu()
 
-			gameDisplay.fill((0,0,0))
+			self.gameDisplay.fill((0,0,0))
+
+
+			text = "Welcome to 4x4x4 Tic Tac Toe!"
+			self.displayText(text,35,(400,100))
+
+			self.displayButtons(AIList)
 			
 			pygame.display.update()
 			pygame.time.wait(15)
 
+	def checkMenu(self):
+		""" checks for button presses in the menu """
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
 
-		# pygame.init()
-		# display = (800,600)
-		# self.gameDisplay = pygame.display.set_mode(display)
-		# text = "Welcome to 4x4x4 Tic Tac Toe!"
+		return [0,0,0]
 
-		# i = 0
-		# while i < 10:
-		# 	self.message_display(text)
-		# 	pygame.time.wait(10)
-		# 	i += 1 # WHOOOPS FORGOT THIS
+	def displayButtons(self, AIList):
+		""" displays the buttons for the board """
+		for LR in range(2):
+			yPos = 150
+			for AI in range(len(AIList)-1):
+				xPos = 100 if LR == 0 else 600
+				yPos += 100
+				dims = (200,50)
+				pygame.draw.rect(self.gameDisplay, (255,0,0),((xPos,yPos),dims))
 
-	def message_display(self,text):
-		half_display = (400,300)
-		self.gameDisplay.fill((0,255,255))
-		largeText = pygame.font.Font('freesansbold.ttf',36)
-		TextSurf, TextRect = self.text_objects(text, largeText)
-		TextRect.center = half_display
-		self.gameDisplay.blit(TextSurf, TextRect)
-		pygame.display.update()
-
-	def text_objects(self,text, font):
-		textSurface = font.render(text, True, (0,0,0))
-		return textSurface, textSurface.get_rect()
+	def displayText(self,text,size,center):
+		largeText = pygame.font.Font('freesansbold.ttf',size)
+		text = largeText.render(text, True, (255, 255, 255))
+		textR = text.get_rect()
+		textR.center = (center)
+		self.gameDisplay.blit(text, textR)
+		
 
 	def initializeBoard(self):
 		""" prepares to display board """

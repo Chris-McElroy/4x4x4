@@ -159,12 +159,12 @@ class Master:
 
 tryTo = Master()
 
-tryTo.main()
+#tryTo.main()
 
-# tryTo.d = Display(tryTo.b)
-# player1 = Vaapad()
-# player2 = Vaapad()
-# tryTo.playGame([None,player1,player2],1)
+tryTo.d = Display(tryTo.b)
+player1 = Wildfire()
+player2 = Wildfire()
+tryTo.playGame([None,player1,player2],1)
 
 
 
