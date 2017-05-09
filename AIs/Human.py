@@ -22,12 +22,12 @@ class Human:
 			display.displayBoard()
 			move = display.getMove()
 
-			if move and tuple(move) in board.getOpenPoints():
+			if move and tuple(move) in board.openPoints():
 				goodInput = True
 			elif move:
 				print "Bad input, try again!"
 
-			n+= 1
+			n += 1
 
 		return move
 

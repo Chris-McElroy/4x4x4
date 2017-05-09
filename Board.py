@@ -19,22 +19,15 @@ class Board:
 			self.currentLines[0].add(i)
 
 
-		self.openPoints = set()
+		self.pointsList = {}
+		for playerNum in [0,1,2]:
+			self.pointsList[playerNum] = set()
 		for i in range(4):
 			for j in range(4):
 				for k in range(4):
-					self.openPoints.add((i,j,k))
+					self.pointsList[0].add((i,j,k))
 
 	# make, check and clear moves
-	def clearBoard(self):
-		"""
-		Clears the board for a new game
-		returns the number of moves deleted
-		"""
-		currentMoves = self.numMoves(1)
-		self.b = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-		return sum(currentMoves)
-
 	def copyBoard(self, b):
 		""" copies the given board object into self.b """
 		for x in range(4):
@@ -42,24 +35,17 @@ class Board:
 				for z in range(4):
 					self.b[x][y][z] = b.b[x][y][z]
 
-	def getOpenPoints(self):
+	def openPoints(self):
 		"""
 		Return a list of all open points on the board
 		"""
-		return self.openPoints
+		return self.pointsList[0]
 
 	def myPoints(self, n):
 		"""
 		Return a list of all points player n has on the board
 		"""
-		points = []
-		for i in range(4):
-			for j in range(4):
-				for k in range(4):
-					current = self.b[i][j][k]
-					if (current == n):
-						points += [[i,j,k]]
-		return points
+		return self.pointsList[n]
 
 	def otherNumber(self, n):
 		"""
@@ -89,11 +75,12 @@ class Board:
 	def move(self,n,p):
 		""" moves player n at point p, returns false if blocked """
 
-		current = self.b[p[0]][p[1]][p[2]]
+		current = self.pointToValue(p)
 		if (current == 0):
 			self.b[p[0]][p[1]][p[2]] = n
 			self.updateLines(n, p)
-			self.openPoints.remove(tuple(p))
+			self.pointsList[0].remove(p)
+			self.pointsList[n].add(p)
 			return True
 		else:
 			return False
@@ -114,7 +101,7 @@ class Board:
 		""" updates the important lines after each move"""
 		o = self.otherNumber(n)
 
-		for line in self.linesForPoint(list(p)):
+		for line in self.linesForPoint(p):
 			values = self.lineToValues(line)
 			playerMoves = values.count(n)
 			otherMoves = values.count(o)
@@ -140,7 +127,6 @@ class Board:
 				elif otherMoves == 0:
 					self.currentLines[(n, playerMoves-1)].remove(line)
 					self.currentLines[(n, playerMoves)].add(line)
-
 
 	# Find lines
 	def findLinesInit(self, n):
@@ -338,7 +324,7 @@ class Board:
 		l = line
 		z = l % 4
 		y = (l-z)/4
-		return [[i,y,z] for i in range(4)]
+		return [(i,y,z) for i in range(4)]
 
 	def colsToPoints(self, line):
 		"""
@@ -348,7 +334,7 @@ class Board:
 		l = line - 16
 		x = l % 4
 		z = (l-x)/4
-		return [[x,i,z] for i in range(4)]
+		return [(x,i,z) for i in range(4)]
 
 	def vrtsToPoints(self, line):
 		"""
@@ -358,7 +344,7 @@ class Board:
 		l = line - 32
 		y = l % 4
 		x = (l-y)/4
-		return [[x,y,i] for i in range(4)]
+		return [(x,y,i) for i in range(4)]
 
 	def diasToPoints(self, line):
 		"""
@@ -368,35 +354,35 @@ class Board:
 		if (48 <= line and line < 52):
 			l = line - 48
 			x = l % 4
-			return [[x,i,i] for i in range(4)]
+			return [(x,i,i) for i in range(4)]
 		if (52 <= line and line < 56):
 			l = line - 52
 			x = l % 4
-			return [[x,i,3-i] for i in range(4)]
+			return [(x,i,3-i) for i in range(4)]
 		if (56 <= line and line < 60):
 			l = line - 56
 			y = l % 4
-			return [[i,y,i] for i in range(4)]
+			return [(i,y,i) for i in range(4)]
 		if (60 <= line and line < 64):
 			l = line - 60
 			y = l % 4
-			return [[i,y,3-i] for i in range(4)]
+			return [(i,y,3-i) for i in range(4)]
 		if (64 <= line and line < 68):
 			l = line - 64
 			z = l % 4
-			return [[i,i,z] for i in range(4)]
+			return [(i,i,z) for i in range(4)]
 		if (68 <= line and line < 72):
 			l = line - 68
 			z = l % 4
-			return [[i,3-i,z] for i in range(4)]
+			return [(i,3-i,z) for i in range(4)]
 		if (line == 72):
-			return [[i,i,i] for i in range(4)]
+			return [(i,i,i) for i in range(4)]
 		if (line == 73):
-			return [[i,i,3-i] for i in range(4)]
+			return [(i,i,3-i) for i in range(4)]
 		if (line == 74):
-			return [[i,3-i,i] for i in range(4)]
+			return [(i,3-i,i) for i in range(4)]
 		if (line == 75):
-			return [[3-i,i,i] for i in range(4)]
+			return [(3-i,i,i) for i in range(4)]
 
 	def pointsToLine(self,p1,p2):
 		"""

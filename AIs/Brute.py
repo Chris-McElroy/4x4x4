@@ -38,3 +38,7 @@ class Brute:
 		"""
 
 		return random.choice(list(moves))
+
+	def color(self):
+		""" returns the color of brute """
+		return (131, 32, 0)

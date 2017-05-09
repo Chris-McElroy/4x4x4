@@ -224,10 +224,10 @@ class Display:
 						for k in range(4):
 							if self.rects[i][j][k].collidepoint(pos):
 								clicked = True
-								if self.mostRecentClick == [i,j,k]:
+								if self.mostRecentClick == (i,j,k):
 									self.approvedMove = True
 								else:
-									self.mostRecentClick = [i,j,k]
+									self.mostRecentClick = (i,j,k)
 				if not clicked:
 					self.mostRecentClick = clicked
 
