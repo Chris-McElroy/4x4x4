@@ -9,7 +9,7 @@ class Wildfire:
 	def __init__(self, currentBoard, playerNumber):
 		""" Stores player info for easy access """
 		self.n = playerNumber
-		self.MAX_FORCES = 8
+		self.MAX_FORCES = 7
 		self.forceCache = {}
 
 	def move(self,board,n, d):
@@ -29,7 +29,10 @@ class Wildfire:
 
 		bestScore = 0
 		bestMoves = []
+		i = 0
 		for point in board.openPoints():
+			i += 1
+			print "try" + str(i) + "/" + str(len(board.openPoints()))
 			board.move(n, point)
 			score = self.evaluatePosition(board, n)
 			board.clearPoint(point)
@@ -106,9 +109,9 @@ class Wildfire:
 		score = 0
 		score += len(board.findLines(n,1))
 		score += 2 * len(board.findLines(n,2))
-		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES) != 0)
+		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES-3) != 0)
 
-		if self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES) != 0:
+		if self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES-3) != 0:
 			return 0
 
 		return score
