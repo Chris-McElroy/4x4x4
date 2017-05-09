@@ -44,6 +44,11 @@ class Master:
 				if choice == "Switch Players":
 					currentSet = False
 
+				if choice == "View Replay":
+					self.viewReplay(players, self.b.moveList)
+					currentSet = False
+
+
 				if choice == "Quit":
 					currentSet = False
 					displayOn = False
@@ -89,6 +94,53 @@ class Master:
 			continueGame = self.checkBoard(nextMove)
 
 			self.n = self.b.otherNumber(self.n)
+
+	def viewReplay(self, players, moveList):
+			"""
+			starts game between players 1 and 2
+			players holds both players, whether AI or real
+			player 1 is X's, player 2 is O's
+			"""
+
+			self.b = Board()
+			self.d = Display(self.b,self.AIList,players)
+			self.d.initializeBoard()
+			self.forced = False
+			self.n = 1
+
+			moveNumber = 0
+
+			while (moveNumber < len(moveList)):
+				titleText = "Player " + str(self.n) + "'s Turn"
+				if self.forced:
+					titleText += " (forced)"
+				self.d.title(titleText)
+
+				self.d.updateBoard(self.b)
+
+				i = 0
+
+				self.d.displayBoard()
+
+
+				direction = self.d.checkReplayControl()
+
+				currentMove = None
+				if direction == 1:
+					currentMove = moveList[moveNumber][0]
+					self.n = moveList[moveNumber][1]					
+					self.b.move(self.n, currentMove)
+					moveNumber += 1
+				elif direction == -1 and moveNumber > 0:
+					moveNumber -= 1
+					currentMove = moveList[moveNumber][0]
+					self.n = moveList[moveNumber][1]					
+					self.b.clearPoint(currentMove)
+				
+
+				if (currentMove):
+					self.checkBoard(currentMove)
+
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """

@@ -29,9 +29,9 @@ class Wildfire:
 		bestScore = 0
 		bestMoves = []
 		i = 0
-		for point in board.getOpenPoints():
+		for point in board.openPoints():
 			i += 1
-			print "try" + str(i) + "/" + str(len(board.getOpenPoints()))
+			d.displayProgress("Main Loop: ", (100*i)/len(board.openPoints()))
 
 			board.move(n, point)
 			score = self.evaluatePosition(board, n)
@@ -113,7 +113,7 @@ class Wildfire:
 		score = 0
 		score += len(board.findLines(n,1))
 		score += 2 * len(board.findLines(n,2))
-		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES-3) != 0)
+		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES-3) != 0 and not self.winningMove(board, n))
 
 		if self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES-3) != 0:
 			return 0

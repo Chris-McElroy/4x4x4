@@ -19,6 +19,8 @@ class Board:
 			self.currentLines[0].add(i)
 
 
+		self.moveList = []
+
 		self.pointsList = {}
 		for playerNum in [0,1,2]:
 			self.pointsList[playerNum] = set()
@@ -78,6 +80,7 @@ class Board:
 		current = self.pointToValue(p)
 		if (current == 0):
 			self.b[p[0]][p[1]][p[2]] = n
+			self.moveList.append((p, n))
 			self.updateLines(n, p)
 			self.pointsList[0].remove(p)
 			self.pointsList[n].add(p)
@@ -93,7 +96,9 @@ class Board:
 			self.b[p[0]][p[1]][p[2]] = 0
 
 			if previous != 0:
-				self.openPoints.add(tuple(p))
+				self.moveList.remove((p, previous))
+				self.pointsList[0].add(p)
+				self.pointsList[previous].remove(p)
 				self.updateLines(previous, p)
 			return previous
 

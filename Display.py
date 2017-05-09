@@ -146,12 +146,12 @@ class Display:
 		""" create the exit buttons """
 
 		buttons = []
-		options = ["Play Again", "Switch Players", "Quit"]
+		options = ["Play Again", "Switch Players", "View Replay", "Quit"]
 		yPos = 150
 		xPos = 300
 		for butt in options:
-			yPos += 100
-			dims = (200,70)
+			yPos += 80
+			dims = (200,60)
 			buttons += [pygame.Rect((xPos,yPos),dims)]
 
 		return buttons,options
@@ -159,7 +159,7 @@ class Display:
 	def displayExit(self,buttons,options):
 		""" displays the exit """
 
-		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(180,0,0),(255,0,0)]]
+		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(210,180,0),(255,255,0)], [(180,0,0),(255,0,0)]]
 		pos = pygame.mouse.get_pos()
 
 		for i in range(len(options)):
@@ -507,5 +507,17 @@ class Display:
 		""" sets the winning move """
 		self.winningMove = p
 
+	def checkReplayControl(self):
+		pygame.time.wait(10)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_LEFT:
+					return -1
+				if event.key == pygame.K_RIGHT:
+					return 1
+		return 0
 
 
