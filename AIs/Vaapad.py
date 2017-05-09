@@ -6,11 +6,11 @@ class Vaapad:
 	The AI class for tic tac toe.  Decides where the AI will go when fed with a board.
 	"""
 
-	def __init__(self, currentBoard, playerNumber):
+	def __init__(self):
 		""" Stores board and player info for easy access """
-		self.b = currentBoard # Board object, not array
-		self.n = playerNumber
-		self.o = self.b.otherNumber(self.n)
+		self.b = None # Board object, not array
+		self.n = 0
+		self.o = 0
 		#self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False

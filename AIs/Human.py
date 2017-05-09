@@ -9,9 +9,8 @@ import time
 class Human:
 	""" functions as the player for a real life person """
 
-	def __init__(self, currentBoard, playerNumber):
+	def __init__(self):
 		""" Stores player info for easy access """
-		self.n = playerNumber
 		print "Double click to move!"
 
 	def move(self,board,n,display):

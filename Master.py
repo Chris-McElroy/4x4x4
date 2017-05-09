@@ -16,6 +16,33 @@ class Master:
 		self.d = Display(self.b)
 		self.n = 0
 		self.forced = False
+		self.wins = [0,0]
+		self.currentAIList = [None,Human,Wildfire,Vaapad]
+
+	def main(self):
+		""" yano it does some shit """
+
+		displayOn = True
+		while displayOn:
+			print "hi we're gnna play things now"
+			playersN = raw_input("Choose your players! Enter 1 for human, 2 for Wildfire, 3 for Vaapad\n")
+			players = [None]
+			for i in range(2):
+				players += [self.currentAIList[int(playersN[i])]()]
+				print playersN
+				print players
+
+			# setsN = raw_input("First to what?")
+			
+			# p1 = raw_input("Who plays first?")
+
+			currentSet = True
+			while currentSet:
+				self.playGame(players,1)
+				currentSet = False
+			displayOn = False
+
+
 
 	def playGame(self, players, p1):
 		"""
@@ -131,9 +158,10 @@ class Master:
 		return checkMate
 
 tryTo = Master()
-player1 = Vaapad(tryTo.b,1)
-player2 = Human(tryTo.b,2)
-tryTo.playGame([None,player1,player2],1)
+tryTo.main()
+# player1 = Vaapad(tryTo.b,1)
+# # player2 = Vaapad(tryTo.b,2)
+# tryTo.playGame([None,player1,player2],1)
 
 
 
