@@ -50,8 +50,8 @@ class Display:
 			self.gameDisplay.fill((0,0,0))
 
 			self.displayText(text,35,(400,100))
-			self.displayText("Player 1:",22,(200,210))
-			self.displayText("Player 2:",22,(600,210))
+			self.displayText("Player 1:",22,(200,150))
+			self.displayText("Player 2:",22,(600,150))
 
 			self.displayButtons(AIList, players, buttons)
 			
@@ -62,10 +62,10 @@ class Display:
 		""" returns the rectangles holding the buttons """
 		buttons = [[None],[None]]
 		for LR in range(2):
-			yPos = 150
+			yPos = 120
 			for AI in AIList[1:]:
 				xPos = 100 if LR == 0 else 500
-				yPos += 100
+				yPos += 52
 				dims = (200,50)
 				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
 
@@ -165,6 +165,9 @@ class Display:
 		for LR in range(2):
 			for i in range(len(AIList)-1):
 				pygame.draw.rect(self.gameDisplay, (0,0,255),buttons[LR][i+1])
+
+		for LR in range(2):
+			for i in range(len(AIList)-1):
 				if isinstance(players[LR+1],AIList[i+1]):
 					pygame.draw.rect(self.gameDisplay, (255,255,255),buttons[LR][i+1], 5)
 				self.displayText(AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
