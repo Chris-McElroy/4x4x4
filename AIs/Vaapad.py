@@ -18,6 +18,7 @@ class Vaapad:
 		self.d = None
 
 		self.undecided = False
+		self.forcingCombo = []
 		self.ply = 4
 
 	def move(self,board,n, display):
@@ -56,8 +57,15 @@ class Vaapad:
 		return self.undecided
 
 	def assuredMove(self):
-
 		self.decided, self.assured = (False,)*2
+
+		if self.forcingCombo != []:
+			if self.forcingCombo[0][1] in self.b.myPoints(self.o):
+				# if they're moving in line with the combo, keep it up
+				self.assured = True
+				self.decided = True
+				self.forcingCombo = self.forcingCombo[1:]
+				return self.forcingCombo[0][0]
 
 		# check for four in a row on both sides
 		move0 = self.fourInARow(self.n)
@@ -125,26 +133,31 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		for ply in range(32):
-			winningMoves = self.recursiveForceToFinish(pairs, ply)
+			winningMoves, combos = self.recursiveForceToFinish(pairs, ply)
 			if winningMoves != []:
-				break
+				combo = self.chooseMove(combos)
+				self.forcingCombo = combo
+				for i in range(len(combos)):
+					if combo == combos[i]:
+						return combo[0][0]
 
-		return self.chooseMove(winningMoves) 
+		return False
 
 	def recursiveForceToFinish(self, pairs, ply):
 		""" solves force to finish recursively """
 
 		lenPairs = len(pairs)
 		moves = []
+		combos = []
 		otherChecks = self.b.findLines(self.o,3)
 
 		allowedPairs = range(lenPairs)
 		allowedIndex = range(2)
 
 		if len(otherChecks) > 0:
-			checkLine = self.b.lineToPoints(otherChecks[0])
+			checkLine = self.b.lineToPoints(next(iter(otherChecks)))
 			for p in checkLine:
-				if newAI.b.pointToValue(p) == 0:
+				if self.b.pointToValue(p) == 0:
 					checkP = p
 			allAllowed = True
 			pairN = 0
@@ -165,19 +178,22 @@ class Vaapad:
 		for pairN in allowedPairs:
 			for i in allowedIndex:
 				newAI = Vaapad()
-				mewAI.updateAll(self.b,self.n,self.d)
+				newAI.updateAll(self.b,self.n,self.d)
 				newAI.updateForForce(pairs[pairN],i)
 				if newAI.assured:
 					moves += [pairs[pairN][i]]
+					combos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
 				elif ply > 0:
 					otherChecks = newAI.b.findLines(newAI.o,3)
 					newPairs = newAI.b.findForces(newAI.n)
-					if otherChecks == []:
-						futureMoves = newAI.recursiveForceToFinish(newPairs, ply-1)
+					if len(otherChecks) == 0:
+						futureMoves, futureCombos = newAI.recursiveForceToFinish(newPairs, ply-1)
 						if futureMoves != []:
-							moves += [pairs[pairN][i]]
+							for m in range(len(futureMoves)):
+								combos += [[[pairs[pairN][i],pairs[pairN][1-i]]] + futureCombos[m]]
+								moves += [pairs[pairN][i]]
 					else:
-						checkLine = newAI.b.lineToPoints(otherChecks[0])
+						checkLine = newAI.b.lineToPoints(next(iter(otherChecks)))
 						for p in checkLine:
 							if newAI.b.pointToValue(p) == 0:
 								checkP = p
@@ -192,7 +208,7 @@ class Vaapad:
 		if moves != []:
 			self.assured = True
 			self.decided = True
-		return moves
+		return moves, combos
 
 	def lookAhead(self):
 		"""
@@ -217,13 +233,9 @@ class Vaapad:
 		# god opening
 		moves = [(1,1,1),(0,3,0),(1,2,2),(2,2,2),(3,2,3)]
 		openPoints = self.b.openPoints()
-		if self.n == 2:
-			print numMoves
-			print openPoints
 		if numMoves < len(moves):
 			if moves[numMoves] in openPoints:
 				return moves[numMoves]
-
 		lilHelper = Brute()
 		return lilHelper.move(self.b,self.n,self.d)
 
@@ -260,7 +272,7 @@ class Vaapad:
 		"""
 		Updates all pairs, moves and lines for the current board
 		"""
-		self.b.copyBoard(board) # Board object, not array
+		self.b.copyAll(board) # Board object, not array
 		self.n = n
 		self.d = display
 		self.o = self.b.otherNumber(self.n)

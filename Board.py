@@ -1,3 +1,5 @@
+import copy
+
 class Board:
 	"""
 	Provides the 4x4x4 board for the game, holds all moves, can be used for lookahead
@@ -30,8 +32,12 @@ class Board:
 					self.pointsList[0].add((i,j,k))
 
 	# make, check and clear moves
-	def copyBoard(self, b):
+	def copyAll(self, b):
 		""" copies the given board object into self.b """
+		self.currentLines = copy.deepcopy(b.currentLines)
+		self.moveList = copy.deepcopy(b.moveList)
+		self.pointsList = copy.deepcopy(b.pointsList)
+
 		for x in range(4):
 			for y in range(4):
 				for z in range(4):
@@ -498,13 +504,12 @@ class Board:
 		blocked = False
 
 		lines = self.findLines(n,2)
-		openPoints = self.openPoints()
 
 		for l in lines:
 			currentPair = []
 			points = self.lineToPoints(l)
 			for p in points:
-				if p in openPoints:
+				if self.pointToValue(p) == 0:
 					currentPair += [p]
 			pairs += [currentPair]
 		return pairs

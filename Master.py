@@ -20,7 +20,7 @@ class Master:
 		self.AIList = [None,Human,Wildfire,Vaapad,Brute]
 
 	def main(self):
-		""" yano it does some shit """
+		""" Main controller of everything, likeyado """
 
 		displayOn = True
 		self.d = Display(self.b,self.AIList,[None, None, None])
@@ -36,22 +36,24 @@ class Master:
 			currentSet = True
 			while currentSet:
 				self.playGame(players)
-				choice = self.d.playAgain()
-				if choice == "Play Again":
-					5
-					# tally up who won and display that somehow
 
-				if choice == "Switch Players":
-					currentSet = False
+				inExit = True
+				while inExit:
+					choice = self.d.playAgain()
 
-				if choice == "View Replay":
-					self.viewReplay(players, self.b.moveList)
-					currentSet = False
+					if choice == "Play Again":
+						inExit = False
+						# tally up who won and display that somehow
 
+					elif choice == "Switch Players":
+						inExit = False
+						currentSet = False
 
-				if choice == "Quit":
-					currentSet = False
-					displayOn = False
+					elif choice == "View Replay":
+						self.viewReplay(players, self.b.moveList)
+
+					elif choice == "Quit":
+						inExit, currentSet, displayOn = (False,)*3
 
 		pygame.quit()
 		quit(0)
@@ -72,9 +74,10 @@ class Master:
 
 		while (continueGame):
 			titleText = "Player " + str(self.n) + "'s Turn"
-			if self.forced:
-				titleText += " (forced)"
 			self.d.title(titleText)
+
+			if self.forced:
+				self.d.checkPoint(self.n)
 
 			self.d.updateBoard(self.b)
 
@@ -112,16 +115,16 @@ class Master:
 
 			while (moveNumber < len(moveList)):
 				titleText = "Player " + str(self.n) + "'s Turn"
-				if self.forced:
-					titleText += " (forced)"
 				self.d.title(titleText)
+
+				if self.forced:
+					self.d.checkPoint(self.n)
 
 				self.d.updateBoard(self.b)
 
 				i = 0
 
 				self.d.displayBoard()
-
 
 				direction = self.d.checkReplayControl()
 
@@ -136,17 +139,46 @@ class Master:
 					currentMove = moveList[moveNumber][0]
 					self.n = moveList[moveNumber][1]					
 					self.b.clearPoint(currentMove)
-				
 
 				if (currentMove):
-					self.checkBoard(currentMove)
+					self.checkBoardForReplay(currentMove)
 
+				pygame.time.wait(10)
+
+	def checkBoardForReplay(self,move):
+		""" check board for wins and checks after a replayed move """
+		numMoves = 64 - len(self.b.openPoints())
+		wins = len(self.b.openLinesForPoint(self.n,move,4))
+		checkMate = self.checkCheckmates(move)
+		checks = self.b.findLines(self.n,3)
+
+		if wins > 0:
+			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
+			self.d.setWinningMove(move)
+			self.d.updateBoard(self.b)
+
+		elif checkMate:
+			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
+			self.d.setWinningMove(move)
+			self.d.updateBoard(self.b)
+
+		elif len(checks) > 0:
+			self.forced = True
+
+		else:
+			self.d.uncheckPoint()
+			self.forced = False
+
+		if numMoves == 64:
+			self.d.title("Wow! You filled the board!")
+			self.d.updateBoard(self.b)
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """
 
 		continueGame = True # can be assumed given that we got here
 
+		numMoves = 64 - len(self.b.openPoints())
 		wins = len(self.b.openLinesForPoint(self.n,move,4))
 		checkMate = self.checkCheckmates(move)
 		checks = self.b.findLines(self.n,3)
@@ -176,28 +208,24 @@ class Master:
 				i += 1 # WHOOOPS FORGOT THIS
 
 		elif len(checks) > 0:
-			checkPoints = self.b.lineToPoints(next(iter(checks)))
-			checkString = ""
-			for point in checkPoints:
-				if self.b.pointToValue(point) == 0:
-					self.d.checkPoint(point)
-					checkString = self.pointToString(point)
-					self.forced = True
-			self.d.title("Check! Player " + str(self.b.otherNumber(self.n)) + " must respond at " + checkString + "!				")
-			self.d.updateBoard(self.b)
+			self.forced = True
 
 		else:
 			self.d.uncheckPoint()
 			self.forced = False
 
-		return continueGame
+		if numMoves == 64:
+			continueGame = False
+			self.d.title("Wow! You filled the board!")
+			self.d.updateBoard(self.b)
 
-	def pointToString(self, p):
-		""" turns a point into a string of numbers that should be inputed """
-		string = ""
-		for n in p:
-			string += str(1+n)
-		return string
+			i = 0
+			while i < 17+36:
+				self.d.displayBoard()
+				pygame.time.wait(10)
+				i += 1 # WHOOOPS FORGOT THIS
+
+		return continueGame
 
 	def checkCheckmates(self,move):
 		""" check board for checkmates after a move """

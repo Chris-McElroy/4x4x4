@@ -159,7 +159,7 @@ class Display:
 	def displayExit(self,buttons,options):
 		""" displays the exit """
 
-		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(210,180,0),(255,255,0)], [(180,0,0),(255,0,0)]]
+		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(230, 90, 0),(255, 120, 25)], [(180,0,0),(255,0,0)]]
 		pos = pygame.mouse.get_pos()
 
 		for i in range(len(options)):
@@ -366,11 +366,20 @@ class Display:
 
 			self.cube(pos, v)
 
-	def checkPoint(self,p):
+	def checkPoint(self, n):
 		""" makes sure to show p later on flashing red """
 		self.check_current = True
 		self.check_n = 0
-		self.check_p = p
+
+		checks = self.b.findLines(self.b.otherNumber(n),3)
+		checkPoints = self.b.lineToPoints(next(iter(checks)))
+		checkString = ""
+		for point in checkPoints:
+			if self.b.pointToValue(point) == 0:
+				self.check_p = point
+				checkString = self.pointToString(point)
+
+		self.title("Check! Player " + str(n) + " must respond at " + checkString + "!")
 
 	def uncheckPoint(self):
 		""" unshows check once it's forced """
@@ -508,7 +517,6 @@ class Display:
 		self.winningMove = p
 
 	def checkReplayControl(self):
-		pygame.time.wait(10)
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -520,4 +528,10 @@ class Display:
 					return 1
 		return 0
 
+	def pointToString(self, p):
+		""" turns a point into a string of numbers that should be inputed """
+		string = ""
+		for n in p:
+			string += str(1+n)
+		return string
 
