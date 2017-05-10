@@ -8,7 +8,7 @@ class Wildfire:
 
 	def __init__(self):
 		""" Stores player info for easy access """
-		self.MAX_FORCES = 7
+		self.MAX_FORCES = 9
 		self.forceCache = {}
 
 	def move(self,board,n, d):
@@ -22,11 +22,19 @@ class Wildfire:
 		if self.winningMove(board, board.otherNumber(n)):
 			return self.winningMove(board, board.otherNumber(n))
 
+		# if we have a winning sequence of forces, take it
 		winningForce = self.forceCheck(board, n, self.MAX_FORCES)
 		if winningForce:
 			return winningForce
 
-		bestScore = 0
+		# if we will have a losing sequence of forces, we need to take action against it.
+		otherForce = self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES)
+		# currently just do shittiest possible block
+		if otherForce:
+			return otherForce
+
+
+		bestScore = -999
 		bestMoves = []
 		i = 0
 		for point in board.openPoints():
@@ -112,8 +120,10 @@ class Wildfire:
 	def evaluatePosition(self, board, n):
 		score = 0
 		score += len(board.findLines(n,1))
-		score += 2 * len(board.findLines(n,2))
-		score += 20 * (self.forceCheck(board, n, self.MAX_FORCES-3) != 0 and not self.winningMove(board, n))
+		score += len(board.findLines(n,2))
+		score -= len(board.findLines(board.otherNumber(n),1))
+		score -= len(board.findLines(board.otherNumber(n),2))
+
 
 		if self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES-3) != 0:
 			return 0
@@ -122,4 +132,4 @@ class Wildfire:
 
 	def colors(self):
 		""" returns the colors of grey """
-		return [(255, 255, 255),(150, 150, 150)]
+		return [(136, 204, 136),(17, 102, 17)]
