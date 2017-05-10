@@ -17,8 +17,6 @@ class Human:
 
 		while not goodInput:
 			pygame.time.wait(10)
-
-			display.displayProgress("lol: ",n%100)
 			display.displayBoard()
 			move = display.getMove()
 

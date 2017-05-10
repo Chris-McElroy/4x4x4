@@ -17,7 +17,7 @@ class Master:
 		self.n = 0
 		self.forced = False
 		self.wins = [0,0]
-		self.AIList = [None,Human,Wildfire,Vaapad,Brute]
+		self.AIList = [None,Human,Vaapad,Wildfire,Brute]
 
 	def main(self):
 		""" Main controller of everything, likeyado """

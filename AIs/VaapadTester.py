@@ -23,6 +23,39 @@ class boardTest(unittest.TestCase):
 	# plane is z = 0
 	onePlaneBoard = [[[1 if (i%4 == 0) else 0 for i in range(4)] for j in range(4)] for k in range(4)]
 
+	def doNothing(self):
+		numMoves = self.b.numMoves(self.n)[0]
+		# simple four in a row
+		#moves = [[0,0,0],[1,0,0],[2,0,0],[3,3,3]]
+
+		# simple checkmate
+		#moves = [[0,0,0],[1,0,0],[0,0,3],[2,0,1]]
+
+		# 1 force checkmate
+		#moves = [[0,0,0],[1,0,0],[1,0,1],[2,0,1],[3,3,3]]
+
+		# 3 move force
+		# moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,0],[0,0,1],[3,3,3]]
+
+		# god opening
+		moves = [(1,1,1),(0,3,0),(1,2,2),(2,2,2),(3,2,3)]
+		openPoints = self.b.openPoints()
+		if numMoves < len(moves):
+			if moves[numMoves] in openPoints:
+				return moves[numMoves]
+		lilHelper = Brute()
+		return lilHelper.move(self.b,self.n,self.d)
+
+
+		currentPly = self.ply
+		currentMoves = self.moves
+
+		while (currentPly > 0):
+			return [0,1,3]
+
+		if self.assured:
+			return [0,1,3]
+
 
 if __name__ == '__main__':
     unittest.main()

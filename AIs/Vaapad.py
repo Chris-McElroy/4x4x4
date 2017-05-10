@@ -12,7 +12,7 @@ class Vaapad:
 		self.b = Board() # Board object, not array
 		self.n = 0
 		self.o = 0
-		#self.moves = self.b.openPoints()
+		self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False
 		self.d = None
@@ -36,11 +36,15 @@ class Vaapad:
 		other = Vaapad()
 		other.updateAll(self.b,self.o,self.d)
 
-		other.lookAhead()
-		#if other.assured: # checks for their strong lookahead
-			#self.moves = self.guardLookAhead()
+		other.otherBadLookAhead()
+		if other.assured: # checks for their strong lookahead
+			self.moves = other.guardLookAhead()
+			move = self.badLookAhead()
 
-		move = self.lookAhead() # casual lookahead
+		if not move:
+			lilHelper = Brute()
+			return lilHelper.move(self.b,self.n,self.d)
+
 		return move
 
 	def chooseMove(self,moves):
@@ -49,10 +53,7 @@ class Vaapad:
 		Currently: Random
 		"""
 
-		nn = 64
-		if (len(moves) > nn):
-			return moves[nn]
-		elif (len(moves) > 0):
+		if (len(moves) > 0):
 			return random.choice(moves)
 		return self.undecided
 
@@ -70,7 +71,6 @@ class Vaapad:
 		# check for four in a row on both sides
 		move0 = self.fourInARow(self.n)
 		if self.assured:
-			print "I have the win\n"
 			return move0
 
 		move1 = self.fourInARow(self.o)
@@ -80,12 +80,10 @@ class Vaapad:
 
 		move3 = self.forceToFinish()
 		if self.assured:
-			print "I have the force.\n"
+			self.d.displayProgress("Forced Shatterpoint: ",int(100.0/len(self.forcingCombo)))
 			return move3
 
-		move4 = self.lookAhead()
-		if self.assured: # checks for a strong lookahead
-			print "I have the win."
+		move4 = self.badLookAhead()
 		
 		return move4
 
@@ -133,23 +131,29 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		for ply in range(32):
-			winningMoves, combos = self.recursiveForceToFinish(pairs, ply)
-			if winningMoves != []:
+			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, True)
+			if winningMoves:
+				self.assured = True
+				self.decided = True
+
 				combo = self.chooseMove(combos)
 				self.forcingCombo = combo
 				for i in range(len(combos)):
 					if combo == combos[i]:
 						return combo[0][0]
+			if not keepSearching:
+				break
 
 		return False
 
-	def recursiveForceToFinish(self, pairs, ply):
+	def forceToFinishR(self, pairs, ply, original):
 		""" solves force to finish recursively """
 
 		lenPairs = len(pairs)
 		moves = []
 		combos = []
 		otherChecks = self.b.findLines(self.o,3)
+		keepSearching = False
 
 		allowedPairs = range(lenPairs)
 		allowedIndex = range(2)
@@ -176,6 +180,9 @@ class Vaapad:
 					return moves # fucking give the fuck up
 
 		for pairN in allowedPairs:
+			if original:
+				percent = int(100.0*pairN/len(allowedPairs))
+				self.d.displayProgress("Recursive "+str(ply)+"-ply Search: ", percent)
 			for i in allowedIndex:
 				newAI = Vaapad()
 				newAI.updateAll(self.b,self.n,self.d)
@@ -187,10 +194,10 @@ class Vaapad:
 					otherChecks = newAI.b.findLines(newAI.o,3)
 					newPairs = newAI.b.findForces(newAI.n)
 					if len(otherChecks) == 0:
-						futureMoves, futureCombos = newAI.recursiveForceToFinish(newPairs, ply-1)
-						if futureMoves != []:
-							for m in range(len(futureMoves)):
-								combos += [[[pairs[pairN][i],pairs[pairN][1-i]]] + futureCombos[m]]
+						futureM, futureC, keepSearching = newAI.forceToFinishR(newPairs, ply-1, False)
+						if futureM != []:
+							for m in range(len(futureM)):
+								combos += [[[pairs[pairN][i],pairs[pairN][1-i]]] + futureC[m]]
 								moves += [pairs[pairN][i]]
 					else:
 						checkLine = newAI.b.lineToPoints(next(iter(otherChecks)))
@@ -202,52 +209,109 @@ class Vaapad:
 								if pair[i] == checkP:
 									newAI.updateForForce(pair,i)
 
-				# elif ply == 0:
-				# 	print "got to 0"
+				elif ply == 0:
+					keepSearching = True
 
-		if moves != []:
-			self.assured = True
-			self.decided = True
-		return moves, combos
+		return moves, combos, keepSearching
 
 	def lookAhead(self):
+		"""
+		Brunt of AI, looks ahead, keeps track of if win is strong/weak
+		"""
+
+		strong = True
+		strongMoves = []
+		movesSet = set()
+
+		for move in self.moves:
+			goodGuy = Vaapad()
+			goodGuy.updateAll(self.b,self.n,self.d)
+			goodGuy.b.move(move)
+
+			if goodGuy.fourInARow(goodGuy.n):
+				moves += [move]
+			elif goodGuy.checkCheckmates():
+				moves += [move]
+			else:
+				badGuy = Vaapad()
+				badGuy.updateAll(goodGuy.b,goodGuy.o,goodGuy.d)
+
+				badGuy.assuredMove()
+
+	def focusOnTheNow(self):
+		"""
+		where the magic numbers come in
+		"""
+
+		score = 0
+		linesSet = [[self.b.findLines(self.o,i) for i in range(1,5)]]
+		linesSet += [[self.b.findLines(self.n,i) for i in range(1,5)]]
+		for i in range(2):
+			for num in range(4):
+				score += (num+1)*len(linesSet[i][num])*(2*i-0.7)
+
+		return score
+
+	def badLookAhead(self):
 		"""
 		Tries moving for player n at point p then rechecks board
 		Returns the point used successfully if player n wins,
 		and p = [-1,-1,-1] if the other player wins or nothing happens
 		"""
 
-		numMoves = self.b.numMoves(self.n)[0]
-		# simple four in a row
-		#moves = [[0,0,0],[1,0,0],[2,0,0],[3,3,3]]
+		bestScore = self.focusOnTheNow()
+		bestMove = []
+		mNum = 0
 
-		# simple checkmate
-		#moves = [[0,0,0],[1,0,0],[0,0,3],[2,0,1]]
+		for move in self.moves:
+			mNum += 1
+			percent = int(100.0*mNum/len(self.moves))
+			self.d.displayProgress("Bad Look-Ahead: ", percent)
+			goodGuy = Vaapad()
+			goodGuy.updateAll(self.b,self.n,self.d)
+			goodGuy.b.move(goodGuy.n,move)
 
-		# 1 force checkmate
-		#moves = [[0,0,0],[1,0,0],[1,0,1],[2,0,1],[3,3,3]]
+			score = goodGuy.focusOnTheNow()
+			if score > bestScore:
+				bestMove = [move]
+				bestScore = score
+			elif score == bestScore:
+				bestMove += [move]
 
-		# 3 move force
-		# moves = [[0,0,0],[0,0,3],[3,0,0],[2,0,0],[0,0,1],[3,3,3]]
+		return self.chooseMove(bestMove)
 
-		# god opening
-		moves = [(1,1,1),(0,3,0),(1,2,2),(2,2,2),(3,2,3)]
-		openPoints = self.b.openPoints()
-		if numMoves < len(moves):
-			if moves[numMoves] in openPoints:
-				return moves[numMoves]
-		lilHelper = Brute()
-		return lilHelper.move(self.b,self.n,self.d)
+	def otherBadLookAhead(self):
+		""" just tries to make sure other cant force to finish """
 
+		pairs = self.b.findForces(self.n)
+		for ply in range(32):
+			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, True)
+			self.forcingCombo = combos
+			if winningMoves:
+				self.assured = True
+				self.decided = True
+				break
+			if not keepSearching:
+				break
 
-		currentPly = self.ply
-		#currentMoves = self.moves
+	def guardLookAhead(self):
+		""" works to defend strong opponent moves by limiting to blocks """
+		pairs = []
+		powerMoves = []
 
-		while (currentPly > 0):
-			return [0,1,3]
+		for combo in self.forcingCombo:
+			for pair in combo:
+				if pair not in pairs:
+					pairs += [pair]
+				else:
+					for i in range(2):
+						if pair[i] not in powerMoves:
+							powerMoves += [pair[i]]
 
-		if self.assured:
-			return [0,1,3]
+		if powerMoves:
+			return powerMoves
+		else:
+			return self.moves
 
 	def updateForPoint(self, p):
 		"""
@@ -276,7 +340,7 @@ class Vaapad:
 		self.n = n
 		self.d = display
 		self.o = self.b.otherNumber(self.n)
-		#self.moves = self.b.openPoints()
+		self.moves = self.b.openPoints()
 		self.decided = False
 		self.assured = False
 

@@ -168,7 +168,11 @@ class Display:
 			pygame.draw.rect(self.gameDisplay, colors[i][colorN], buttons[i])
 			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
 
-	def displayButtons(self, buttons, colorSet):]
+	def displayButtons(self, buttons, colorSet):
+		""" displays the buttons for the board """
+		for LR in range(2):
+			for i in range(len(self.AIList)-1):
+				color = colorSet[i+1][0]
 				pygame.draw.rect(self.gameDisplay, color,buttons[LR][i+1])
 
 		for LR in range(2):
@@ -316,13 +320,14 @@ class Display:
 
 	def displayProgress(self,string,percent):
 		""" displays the progress bar and a short description """
-		if string == None:
-			self.title(self.titleText)
+
 		oldText = self.titleText
-		addedSpace = " "*(145-len(oldText+string))
+		addedSpace = " "*int(145-1.2*len(oldText+string))
 		completed = "|" + " "*(percent/3)
 		todo = " "*(33-percent/3) + "|"
 		pygame.display.set_caption(oldText+addedSpace+string+completed+"=>"+todo)
+		self.checkInputs()
+		pygame.display.flip()
 
 	def displayPieces(self):
 		""" displays all the pieces on the board """
