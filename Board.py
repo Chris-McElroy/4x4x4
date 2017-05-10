@@ -519,11 +519,36 @@ class Board:
 		"""
 		Returns a list of all the line numbers passing through point p
 		"""
+		i = p[0]
+		j = p[1]
+		k = p[2]
+
 		lines = []
-		for line in range(76):
-			points = self.lineToPoints(line)
-			if p in points:
-				lines += [line]
+		lines += [4*j + k]
+		lines += [16 + 4*k + i]
+		lines += [32 + 4*i + j]
+
+		if j == k:
+			lines += [48 + i]
+		if j == 3 - k:
+			lines += [52 + i]
+		if i == k:
+			lines += [56 + j]
+		if i == 3 - k:
+			lines += [60 + j]
+		if j == i:
+			lines += [64 + k]
+		if j == 3 - i:
+			lines += [68 + k]
+		if i == j and i == k:
+			lines += [72]
+		if i == j and i == 3 - k:
+			lines += [73]
+		if i == k and i == 3 - j:
+			lines += [74]
+		if j == k and i == 3 - j:
+			lines += [75]
+
 		return lines
 
 	def openLinesForPoint(self, n, p, num):

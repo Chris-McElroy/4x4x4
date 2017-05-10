@@ -106,18 +106,18 @@ class Master:
 			"""
 
 			self.fakeB = Board()
+			self.fakeB.copyAll(self.b)
 			moveList = self.b.moveList
 			self.d = Display(self.fakeB,self.AIList,players)
 			self.d.initializeBoard()
 			self.forced = False
 			self.n = 1
 
-			moveNumber = -1
-			self.d.updateBoard(self.fakeB)
+			moveNumber = len(moveList) - 1
+			self.checkBoardForReplay(moveList[moveNumber][0])
 
 			while (moveNumber < len(moveList)) and moveNumber >= -1:
 				self.d.displayReplayBoard()
-
 				pygame.time.wait(10)
 
 				direction = self.d.checkReplayControl()
@@ -133,12 +133,13 @@ class Master:
 					elif direction == -1:
 						if moveNumber >= 0:
 							currentMove = moveList[moveNumber][0]
-							self.n = moveList[moveNumber][1]
+							self.n = self.b.otherNumber(moveList[moveNumber][1])
 							self.fakeB.clearPoint(currentMove)
 						moveNumber -= 1
 
 					self.d.updateBoard(self.fakeB)
-					self.checkBoardForReplay(currentMove)
+					if moveNumber in range(len(moveList)):
+						self.checkBoardForReplay(currentMove)
 
 	def checkBoardForReplay(self,move):
 		""" check board for wins and checks after a replayed move """
@@ -148,22 +149,29 @@ class Master:
 		checks = self.fakeB.findLines(self.n,3)
 
 		if wins > 0:
+			self.d.uncheckPoint()
+			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
 
 		elif checkMate:
+			self.d.uncheckPoint()
+			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
 
-		elif len(checks) > 0:
-			self.forced = True
-			self.d.checkPoint(self.n)
-
 		else:
+			print 'here'
+			print checks
+			print self.n
 			self.d.uncheckPoint()
 			self.forced = False
 			self.d.setWinningMove(False)
 			self.d.title("Player " + str(self.n) + "'s Turn")
+
+			if len(checks) > 0:
+				self.forced = True
+				self.d.checkPoint(self.n)
 
 		if numMoves == 64:
 			self.d.title("Wow! You filled the board!")
@@ -180,6 +188,8 @@ class Master:
 
 		if wins > 0:
 			continueGame = False
+			self.d.uncheckPoint()
+			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
 			self.d.updateBoard(self.b)
@@ -191,6 +201,8 @@ class Master:
 				i += 1 # WHOOOPS FORGOT THIS
 
 		elif checkMate:
+			self.d.uncheckPoint()
+			self.forced = False
 			continueGame = False
 			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
