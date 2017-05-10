@@ -50,7 +50,7 @@ class Master:
 						currentSet = False
 
 					elif choice == "View Replay":
-						self.viewReplay(players, self.b.moveList)
+						self.viewReplay(players)
 
 					elif choice == "Quit":
 						inExit, currentSet, displayOn = (False,)*3
@@ -77,7 +77,7 @@ class Master:
 			self.d.title(titleText)
 
 			if self.forced:
-				self.d.checkPoint(self.n)
+				self.d.checkPoint(self.b.otherNumber(self.n))
 
 			self.d.updateBoard(self.b)
 
@@ -98,80 +98,75 @@ class Master:
 
 			self.n = self.b.otherNumber(self.n)
 
-	def viewReplay(self, players, moveList):
+	def viewReplay(self, players):
 			"""
 			starts game between players 1 and 2
 			players holds both players, whether AI or real
 			player 1 is X's, player 2 is O's
 			"""
 
-			self.b = Board()
-			self.d = Display(self.b,self.AIList,players)
+			self.fakeB = Board()
+			moveList = self.b.moveList
+			self.d = Display(self.fakeB,self.AIList,players)
 			self.d.initializeBoard()
 			self.forced = False
 			self.n = 1
 
-			moveNumber = 0
+			moveNumber = -1
+			self.d.updateBoard(self.fakeB)
 
-			while (moveNumber < len(moveList)):
-				titleText = "Player " + str(self.n) + "'s Turn"
-				self.d.title(titleText)
-
-				if self.forced:
-					self.d.checkPoint(self.n)
-
-				self.d.updateBoard(self.b)
-
-				i = 0
-
-				self.d.displayBoard()
-
-				direction = self.d.checkReplayControl()
-
-				currentMove = None
-				if direction == 1:
-					currentMove = moveList[moveNumber][0]
-					self.n = moveList[moveNumber][1]					
-					self.b.move(self.n, currentMove)
-					moveNumber += 1
-				elif direction == -1 and moveNumber > 0:
-					moveNumber -= 1
-					currentMove = moveList[moveNumber][0]
-					self.n = moveList[moveNumber][1]					
-					self.b.clearPoint(currentMove)
-
-				if (currentMove):
-					self.checkBoardForReplay(currentMove)
+			while (moveNumber < len(moveList)) and moveNumber >= -1:
+				self.d.displayReplayBoard()
 
 				pygame.time.wait(10)
 
+				direction = self.d.checkReplayControl()
+
+				if direction != 0:
+					currentMove = None
+					if direction == 1:
+						moveNumber += 1
+						if moveNumber < len(moveList):
+							currentMove = moveList[moveNumber][0]
+							self.n = moveList[moveNumber][1]					
+							self.fakeB.move(self.n, currentMove)
+					elif direction == -1:
+						if moveNumber >= 0:
+							currentMove = moveList[moveNumber][0]
+							self.n = moveList[moveNumber][1]
+							self.fakeB.clearPoint(currentMove)
+						moveNumber -= 1
+
+					self.d.updateBoard(self.fakeB)
+					self.checkBoardForReplay(currentMove)
+
 	def checkBoardForReplay(self,move):
 		""" check board for wins and checks after a replayed move """
-		numMoves = 64 - len(self.b.openPoints())
-		wins = len(self.b.openLinesForPoint(self.n,move,4))
-		checkMate = self.checkCheckmates(move)
-		checks = self.b.findLines(self.n,3)
+		numMoves = 64 - len(self.fakeB.openPoints())
+		wins = len(self.fakeB.openLinesForPoint(self.n,move,4))
+		checkMate = self.checkCheckmates(True)
+		checks = self.fakeB.findLines(self.n,3)
 
 		if wins > 0:
 			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
-			self.d.updateBoard(self.b)
 
 		elif checkMate:
 			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
-			self.d.updateBoard(self.b)
 
 		elif len(checks) > 0:
 			self.forced = True
+			self.d.checkPoint(self.n)
 
 		else:
 			self.d.uncheckPoint()
 			self.forced = False
+			self.d.setWinningMove(False)
+			self.d.title("Player " + str(self.n) + "'s Turn")
 
 		if numMoves == 64:
 			self.d.title("Wow! You filled the board!")
-			self.d.updateBoard(self.b)
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """
@@ -180,7 +175,7 @@ class Master:
 
 		numMoves = 64 - len(self.b.openPoints())
 		wins = len(self.b.openLinesForPoint(self.n,move,4))
-		checkMate = self.checkCheckmates(move)
+		checkMate = self.checkCheckmates(False)
 		checks = self.b.findLines(self.n,3)
 
 		if wins > 0:
@@ -227,14 +222,17 @@ class Master:
 
 		return continueGame
 
-	def checkCheckmates(self,move):
+	def checkCheckmates(self,fake):
 		""" check board for checkmates after a move """
 
 		checkMate = False
-		points = self.b.myPoints(self.n)
+		board = self.b
+		if fake:
+			board = self.fakeB
+		points = board.myPoints(self.n)
 
 		for p in points:
-			checks = self.b.openLinesForPoint(self.n,p,3)
+			checks = board.openLinesForPoint(self.n,p,3)
 			if len(checks) > 1:
 				checkMate = True
 

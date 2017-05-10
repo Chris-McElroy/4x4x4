@@ -371,7 +371,7 @@ class Display:
 		self.check_current = True
 		self.check_n = 0
 
-		checks = self.b.findLines(self.b.otherNumber(n),3)
+		checks = self.b.findLines(n,3)
 		checkPoints = self.b.lineToPoints(next(iter(checks)))
 		checkString = ""
 		for point in checkPoints:
@@ -515,6 +515,17 @@ class Display:
 	def setWinningMove(self,p):
 		""" sets the winning move """
 		self.winningMove = p
+
+	def displayReplayBoard(self):
+		""" clears screen and redisplays board """
+
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
+		self.displayPieces()
+
+		pygame.display.flip()
+
+		glClearColor(0,0,0,0)
 
 	def checkReplayControl(self):
 		for event in pygame.event.get():

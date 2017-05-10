@@ -96,7 +96,8 @@ class Board:
 
 	def clearPoint(self,p):
 			""" clears a move, returns the previous value there
-			WARNING: THIS FUNCTION CURRENTLY DOES NOT UDPATE LINES"""
+			WARNING: THIS FUNCTION CURRENTLY DOES NOT UDPATE LINES
+			"""
 
 			previous = self.b[p[0]][p[1]][p[2]]
 			self.b[p[0]][p[1]][p[2]] = 0
