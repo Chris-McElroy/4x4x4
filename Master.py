@@ -144,29 +144,28 @@ class Master:
 	def checkBoardForReplay(self,move):
 		""" check board for wins and checks after a replayed move """
 		numMoves = 64 - len(self.fakeB.openPoints())
-		wins = len(self.fakeB.openLinesForPoint(self.n,move,4))
+		wins = self.fakeB.openLinesForPoint(self.n,move,4)
 		checkMate = self.checkCheckmates(True)
 		checks = self.fakeB.findLines(self.n,3)
 
-		if wins > 0:
-			self.d.uncheckPoint()
+		if len(wins) > 0:
 			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
+			self.d.setFlashLines(wins)
 
 		elif checkMate:
-			self.d.uncheckPoint()
 			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
 
 		else:
-			self.d.uncheckPoint()
 			self.forced = False
-			self.d.setWinningMove(False)
-			self.d.title("Player " + str(self.n) + "'s Turn")
+			self.d.setWinningMove([])
+			self.d.title("Player " + str(self.b.otherNumber(self.n)) + "'s Turn")
 
 			if len(checks) > 0:
+				self.d.setFlashLines(checks)
 				self.forced = True
 				self.d.checkPoint(self.n)
 
@@ -179,16 +178,16 @@ class Master:
 		continueGame = True # can be assumed given that we got here
 
 		numMoves = 64 - len(self.b.openPoints())
-		wins = len(self.b.openLinesForPoint(self.n,move,4))
+		wins = self.b.openLinesForPoint(self.n,move,4)
 		checkMate = self.checkCheckmates(False)
 		checks = self.b.findLines(self.n,3)
 
-		if wins > 0:
+		if len(wins) > 0:
 			continueGame = False
-			self.d.uncheckPoint()
 			self.forced = False
 			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
+			self.d.setFlashLines(wins)
 			self.d.updateBoard(self.b)
 
 			i = 0
@@ -198,7 +197,6 @@ class Master:
 				i += 1 # WHOOOPS FORGOT THIS
 
 		elif checkMate:
-			self.d.uncheckPoint()
 			self.forced = False
 			continueGame = False
 			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
@@ -212,11 +210,13 @@ class Master:
 				i += 1 # WHOOOPS FORGOT THIS
 
 		elif len(checks) > 0:
+			self.d.setFlashLines(checks)
+			self.d.checkPoint(self.n)
 			self.forced = True
 
 		else:
-			self.d.uncheckPoint()
 			self.forced = False
+			self.d.setFlashLines([])
 
 		if numMoves == 64:
 			continueGame = False
@@ -235,16 +235,20 @@ class Master:
 		""" check board for checkmates after a move """
 
 		checkMate = False
+		checkLines = []
 		board = self.b
 		if fake:
 			board = self.fakeB
+
 		points = board.myPoints(self.n)
 
 		for p in points:
 			checks = board.openLinesForPoint(self.n,p,3)
 			if len(checks) > 1:
 				checkMate = True
+				checkLines += checks
 
+		self.d.setFlashLines(checkLines)
 		return checkMate
 
 tryTo = Master()

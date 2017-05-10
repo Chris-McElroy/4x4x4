@@ -33,7 +33,7 @@ class Human:
 
 	def colors(self):
 		""" returns the colors of humans """
-		return [(0, 30, 255),(0, 255, 20)]
+		return [(0, 30, 255),(0, 30, 120)]
 
 
 

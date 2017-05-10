@@ -16,20 +16,19 @@ class Display:
 
 		self.dir = 1 # direction to view board, can be 1-6
 		self.b = board
+		self.titleText = ""
+		self.AIList = AIs
+		self.players = players
 
-		self.check_current = False
-		self.check_n = 0
-		self.check_p = [0,0,0]
+		self.flash_n = 0
+		self.flashingLines = []
+		self.winningMove = False
+
 		self.gameDisplay = None
 		self.rects = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 		self.mostRecentClick = False
 		self.approvedMove = False
-		self.click_n = 0
-		self.win_n = 0
-		self.titleText = ""
-		self.winningMove = False
-		self.AIList = AIs
-		self.players = players
+
 
 	def mainMenu(self):
 		""" displays and checks for the main menu """
@@ -169,11 +168,7 @@ class Display:
 			pygame.draw.rect(self.gameDisplay, colors[i][colorN], buttons[i])
 			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
 
-	def displayButtons(self, buttons, colorSet):
-		""" displays the buttons for the board """
-		for LR in range(2):
-			for i in range(len(self.AIList)-1):
-				color = colorSet[i+1][LR]
+	def displayButtons(self, buttons, colorSet):]
 				pygame.draw.rect(self.gameDisplay, color,buttons[LR][i+1])
 
 		for LR in range(2):
@@ -343,32 +338,22 @@ class Display:
 			pos = positions[i]
 			v = self.b.b[p[0]][p[1]][p[2]]
 
-			if p == self.check_p and self.check_current:
-				self.check_n += 1
-				if self.check_n < 4:
+			if p == self.mostRecentClick or p == self.winningMove:
+				if self.flash_n < 4:
 					v = 3
-				elif self.check_n > 6:
-					self.check_n = 0
 
-			if p == self.mostRecentClick:
-				self.click_n += 1
-				if self.click_n < 4:
-					v = 4
-				elif self.click_n > 6:
-					self.click_n = 0
-
-			if p == self.winningMove:
-				self.win_n += 1
-				if self.win_n < 4:
-					v = 4
-				elif self.win_n > 6:
-					self.win_n = 0
+			if p in self.flashingLines:
+				if self.flash_n  < 4:
+					v += 4
 
 			self.cube(pos, v)
 
+		self.flash_n += 1
+		if self.flash_n > 9:
+				self.flash_n = 0
+
 	def checkPoint(self, n):
 		""" makes sure to show p later on flashing red """
-		self.check_current = True
 		self.check_n = 0
 
 		checks = self.b.findLines(n,3)
@@ -376,16 +361,9 @@ class Display:
 		checkString = ""
 		for point in checkPoints:
 			if self.b.pointToValue(point) == 0:
-				self.check_p = point
 				checkString = self.pointToString(point)
 
-		self.title("Check! Player " + str(n) + " must respond at " + checkString + "!")
-
-	def uncheckPoint(self):
-		""" unshows check once it's forced """
-		self.check_current = False
-		self.check_n = 0
-		self.check_p = [0,0,0]
+		self.title("Check! Player " + str(self.b.otherNumber(n)) + " must respond at " + checkString + "!")
 
 	def getPoints(self):
 		""" gets the correct points based on the value of self.d """
@@ -462,13 +440,13 @@ class Display:
 			color = self.players[v].colors()[v-1]
 		elif v == 0:
 			color = (50,50,50)
-		elif v == 3:
-			color = (255,0,0)
-		elif v == 4:
+		elif v == 3 or v == 7:
 			color = (255,255,0)
+		elif v == 4:
+			color = (255,0,0)
 		elif v in [5,6]:
 			n = v-4
-			color = self.players[n].colors()[board.otherNumber(n)-1]
+			color = self.players[n].colors()[self.b.otherNumber(n)-1]
 
 		return (color[0]/255.0,color[1]/255.0,color[2]/255.0)
 
@@ -516,6 +494,13 @@ class Display:
 		""" sets the winning move """
 		self.winningMove = p
 
+	def setFlashLines(self,lines):
+		""" sets the flash lines """
+		self.flashingLines = []
+		for line in lines:
+			for point in self.b.lineToPoints(line):
+				self.flashingLines += [point]
+
 	def displayReplayBoard(self):
 		""" clears screen and redisplays board """
 
@@ -545,4 +530,7 @@ class Display:
 		for n in p:
 			string += str(1+n)
 		return string
+
+
+
 

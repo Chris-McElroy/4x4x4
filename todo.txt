@@ -25,29 +25,3 @@ add countdown timer to display
 Timer rules:
 20 min initial block,
 then 10 2 min moves
-
-
-	def main(self):
-		""" yano it does some shit """
-
-		displayOn = True
-		self.d = Display(self.b)
-		self.d.mainMenu(self.AIList)
-
-		self.d.title("Welcome to Tic Tac Toe! Please select 2 players below!")
-
-		while displayOn:
-			playersN = raw_input("Choose your players! Enter 1 for human, 2 for Wildfire, 3 for Vaapad\n")
-			players = [None]
-			for i in range(2):
-				players += [self.AIList[int(playersN[i])]()]
-
-			# setsN = raw_input("First to what?")
-			
-			# p1 = raw_input("Who plays first?")
-
-			currentSet = True
-			while currentSet:
-				self.playGame(players,1)
-				currentSet = False
-			displayOn = False
