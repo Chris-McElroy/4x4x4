@@ -161,9 +161,6 @@ class Master:
 			self.d.setWinningMove(move)
 
 		else:
-			print 'here'
-			print checks
-			print self.n
 			self.d.uncheckPoint()
 			self.forced = False
 			self.d.setWinningMove(False)
