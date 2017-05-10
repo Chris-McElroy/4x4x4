@@ -131,7 +131,7 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		for ply in range(32):
-			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, True)
+			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, 1)
 			if winningMoves:
 				self.assured = True
 				self.decided = True
@@ -181,8 +181,13 @@ class Vaapad:
 
 		for pairN in allowedPairs:
 			if original:
+				text = "Offensive "+str(ply)+"-ply Search: "
 				percent = int(100.0*pairN/len(allowedPairs))
-				self.d.displayProgress("Recursive "+str(ply)+"-ply Search: ", percent)
+				if original == 2:
+					text = "Defensive "+str(ply)+"-ply Search: "
+				if moves:
+					text =  "Successful "+str(ply)+"-ply Search: "
+				self.d.displayProgress(text, percent)
 			for i in allowedIndex:
 				newAI = Vaapad()
 				newAI.updateAll(self.b,self.n,self.d)
@@ -194,7 +199,9 @@ class Vaapad:
 					otherChecks = newAI.b.findLines(newAI.o,3)
 					newPairs = newAI.b.findForces(newAI.n)
 					if len(otherChecks) == 0:
-						futureM, futureC, keepSearching = newAI.forceToFinishR(newPairs, ply-1, False)
+						futureM, futureC, futureKS = newAI.forceToFinishR(newPairs, ply-1, 0)
+						if futureKS:
+							keepSearching = True
 						if futureM != []:
 							for m in range(len(futureM)):
 								combos += [[[pairs[pairN][i],pairs[pairN][1-i]]] + futureC[m]]
@@ -285,7 +292,7 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		for ply in range(32):
-			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, True)
+			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, 2)
 			self.forcingCombo = combos
 			if winningMoves:
 				self.assured = True
