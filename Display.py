@@ -17,6 +17,7 @@ class Display:
 		self.dir = 1 # direction to view board, can be 1-6
 		self.b = board
 		self.titleText = ""
+		self.progressText = ["","",0]
 		self.AIList = AIs
 		self.players = players
 
@@ -37,7 +38,7 @@ class Display:
 		display = (800,600)
 		self.gameDisplay = pygame.display.set_mode(display)
 		text = "Welcome to 4x4x4 Tic Tac Toe!"
-		self.title(text + "  Please select 2 players below!")
+		self.changeTitleText(text + "  Please select 2 players below!")
 
 		buttons = self.createButtons()
 
@@ -90,7 +91,7 @@ class Display:
 					for i in range(len(self.AIList)-1):
 						if buttons[LR][i+1].collidepoint(pos):
 							self.players[LR+1] = self.AIList[i+1]()
-							self.title(text + "   " + self.AIList[i+1].__name__ + " player selected.")
+							self.changeTitleText(text + "   " + self.AIList[i+1].__name__ + " player selected.")
 
 				# check if the Go button is clicked
 				if buttons[2].collidepoint(pos) and self.players[1] and self.players[2]:
@@ -104,7 +105,7 @@ class Display:
 		display = (800,600)
 		self.gameDisplay = pygame.display.set_mode(display)
 		text = "Thanks for playing!"
-		self.title(text)
+		self.changeTitleText(text)
 
 		buttons,options = self.exitButtons()
 
@@ -198,7 +199,7 @@ class Display:
 		pygame.init()
 		display = (800, 600)
 		self.gameDisplay = pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-		self.title("")
+		self.changeTitleText("")
 
 		self.createRects()
 
@@ -313,21 +314,36 @@ class Display:
 
 		glClearColor(0,0,0,0)
 
-	def title(self,string):
-		""" sets the title of the display to be string """
-		pygame.display.set_caption(string)
+	def changeTitleText(self,string):
+		""" sets the title text """
 		self.titleText = string
+		self.displayProgress(self.progressText[1],self.progressText[2])
+
+	def title(self):
+		""" sets the title of the display to be string """
+
+		pygame.display.set_caption(self.titleText+self.progressText[0])
+		self.checkInputs()
+		pygame.display.flip()
 
 	def displayProgress(self,string,percent):
 		""" displays the progress bar and a short description """
 
-		oldText = self.titleText
-		addedSpace = " "*int(145-1.2*len(oldText+string))
-		completed = "|" + " "*(percent/3)
-		todo = " "*(33-percent/3) + "|"
-		pygame.display.set_caption(oldText+addedSpace+string+completed+"=>"+todo)
-		self.checkInputs()
-		pygame.display.flip()
+		percent = int(percent)
+		if percent < 0:
+			percent = 0
+		if percent > 100:
+			percent = 100
+
+		if not string:
+			self.progressText = ["","",0]
+		else:
+			addedSpace = " "*int(140-1.2*len(self.titleText+string))
+			completed = "|" + " "*(percent/3)
+			todo = " "*(33-percent/3) + "|"
+			self.progressText = [addedSpace+string+completed+"=>"+todo,string,percent]
+
+		self.title()
 
 	def displayPieces(self):
 		""" displays all the pieces on the board """
@@ -368,7 +384,7 @@ class Display:
 			if self.b.pointToValue(point) == 0:
 				checkString = self.pointToString(point)
 
-		self.title("Check! Player " + str(self.b.otherNumber(n)) + " must respond at " + checkString + "!")
+		self.changeTitleText("Check! Player " + str(self.b.otherNumber(n)) + " must respond at " + checkString + "!")
 
 	def getPoints(self):
 		""" gets the correct points based on the value of self.d """

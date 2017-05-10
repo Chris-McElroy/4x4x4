@@ -19,6 +19,7 @@ class Vaapad:
 
 		self.undecided = False
 		self.forcingCombo = []
+		self.comboLen = False
 		self.ply = 4
 
 	def move(self,board,n, display):
@@ -60,12 +61,15 @@ class Vaapad:
 	def assuredMove(self):
 		self.decided, self.assured = (False,)*2
 
-		if self.forcingCombo != []:
+		if self.forcingCombo:
 			if self.forcingCombo[0][1] in self.b.myPoints(self.o):
 				# if they're moving in line with the combo, keep it up
 				self.assured = True
 				self.decided = True
 				self.forcingCombo = self.forcingCombo[1:]
+				percent = 100.0*(self.comboLen-len(self.forcingCombo)+1)/self.comboLen
+				self.d.displayProgress("Forced Shatterpoint: ", percent)
+				pygame.time.wait(400)
 				return self.forcingCombo[0][0]
 
 		# check for four in a row on both sides
@@ -80,7 +84,9 @@ class Vaapad:
 
 		move3 = self.forceToFinish()
 		if self.assured:
-			self.d.displayProgress("Forced Shatterpoint: ",int(100.0/len(self.forcingCombo)))
+			self.comboLen = len(self.forcingCombo)
+			self.d.displayProgress("Forced Shatterpoint: ", 100.0/self.comboLen)
+			pygame.time.wait(400)
 			return move3
 
 		move4 = self.badLookAhead()
@@ -182,7 +188,7 @@ class Vaapad:
 		for pairN in allowedPairs:
 			if original:
 				text = "Offensive "+str(ply)+"-ply Search: "
-				percent = int(100.0*pairN/len(allowedPairs))
+				percent = 100.0*pairN/len(allowedPairs)
 				if original == 2:
 					text = "Defensive "+str(ply)+"-ply Search: "
 				if moves:
@@ -272,7 +278,7 @@ class Vaapad:
 
 		for move in self.moves:
 			mNum += 1
-			percent = int(100.0*mNum/len(self.moves))
+			percent = 100.0*mNum/len(self.moves)
 			self.d.displayProgress("Bad Look-Ahead: ", percent)
 			goodGuy = Vaapad()
 			goodGuy.updateAll(self.b,self.n,self.d)
@@ -365,21 +371,6 @@ class Vaapad:
 		checks = self.b.openLinesForPoint(self.n,pair[myNum],3)
 		other = self.b.openLinesForPoint(self.o,pair[otherNum],4)
 		if  len(checks) > 0 and len(other) == 0:
-
-			# print "i think ill have checkmate"
-			# print checks
-			# print moveChain
-			# print pair[myNum]
-			# print "here's the board:"
-			# for i in [3,2,1,0]:
-			# 	lineString = ""
-			# 	for j in range(4):
-			# 		l = j + 4*i
-			# 		values = self.b.lineToValues(l)
-			# 		for v in values:
-			# 			lineString += self.valueToMark(v) + " "
-			# 		lineString += "  "
-			# 	print lineString
 			self.assured = True
 			self.decided = True
 

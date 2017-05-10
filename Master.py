@@ -74,7 +74,8 @@ class Master:
 
 		while (continueGame):
 			titleText = "Player " + str(self.n) + "'s Turn"
-			self.d.title(titleText)
+			self.d.changeTitleText(titleText)
+			self.d.displayProgress("",0)
 
 			if self.forced:
 				self.d.checkPoint(self.b.otherNumber(self.n))
@@ -110,6 +111,7 @@ class Master:
 			moveList = self.b.moveList
 			self.d = Display(self.fakeB,self.AIList,players)
 			self.d.initializeBoard()
+			self.d.displayProgress("",0)
 			self.forced = False
 			self.n = 1
 
@@ -150,19 +152,19 @@ class Master:
 
 		if len(wins) > 0:
 			self.forced = False
-			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
+			self.d.changeTitleText("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
 			self.d.setFlashLines(wins)
 
 		elif checkMate:
 			self.forced = False
-			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
+			self.d.changeTitleText("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
 
 		else:
 			self.forced = False
 			self.d.setWinningMove([])
-			self.d.title("Player " + str(self.b.otherNumber(self.n)) + "'s Turn")
+			self.d.changeTitleText("Player " + str(self.b.otherNumber(self.n)) + "'s Turn")
 
 			if len(checks) > 0:
 				self.d.setFlashLines(checks)
@@ -170,7 +172,7 @@ class Master:
 				self.d.checkPoint(self.n)
 
 		if numMoves == 64:
-			self.d.title("Wow! You filled the board!")
+			self.d.changeTitleText("Wow! You filled the board!")
 
 	def checkBoard(self,move):
 		""" check board for wins and checks after a move """
@@ -185,7 +187,8 @@ class Master:
 		if len(wins) > 0:
 			continueGame = False
 			self.forced = False
-			self.d.title("Player " + str(self.n) + " Wins! They got 4 in a row!")
+			self.d.displayProgress("",0)
+			self.d.changeTitleText("Player " + str(self.n) + " Wins! They got 4 in a row!")
 			self.d.setWinningMove(move)
 			self.d.setFlashLines(wins)
 			self.d.updateBoard(self.b)
@@ -199,7 +202,8 @@ class Master:
 		elif checkMate:
 			self.forced = False
 			continueGame = False
-			self.d.title("Player " + str(self.n) + " Wins! They got checkmate!")
+			self.d.displayProgress("",0)
+			self.d.changeTitleText("Player " + str(self.n) + " Wins! They got checkmate!")
 			self.d.setWinningMove(move)
 			self.d.updateBoard(self.b)
 
@@ -220,7 +224,8 @@ class Master:
 
 		if numMoves == 64:
 			continueGame = False
-			self.d.title("Wow! You filled the board!")
+			self.d.displayProgress("",0)
+			self.d.changeTitleText("Wow! You filled the board!")
 			self.d.updateBoard(self.b)
 
 			i = 0
