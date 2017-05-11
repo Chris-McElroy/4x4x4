@@ -1,25 +1,10 @@
 Board:
-otherNumber
-myPoints
-linesForPoint
-
-Brain:
-lookAhead
-updateForPoint # not called yet
-checkWins
-
-BrainTest:
-test_lookAhead # how
 
 Display:
-rotations
 
 Master:
-implement clock timer possibility
 
 Human:
-clicking for input
-add countdown timer to display
 
 
 Timer rules:

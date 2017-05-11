@@ -159,7 +159,7 @@ class Display:
 	def displayExit(self,buttons,options):
 		""" displays the exit """
 
-		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(230, 90, 0),(255, 120, 25)], [(180,0,0),(255,0,0)]]
+		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(230, 90, 0),(255, 110, 0)], [(180,0,0),(255,0,0)]]
 		pos = pygame.mouse.get_pos()
 
 		for i in range(len(options)):
@@ -249,7 +249,7 @@ class Display:
 		""" manages the paused game """
 		paused = True
 		oldTitle = self.titleText
-		self.title("PAUSED")
+		self.changeTitleText("PAUSED")
 
 		glClearColor(.4,.4,.4,.4)
 		self.displayBoard()
@@ -290,7 +290,7 @@ class Display:
 					glClearColor(.4,.4,.4,.4)
 					self.displayBoard()
 
-		self.title(oldTitle)
+		self.changeTitleText(oldTitle)
 		self.dir = 1
 
 		display = (800,600)
