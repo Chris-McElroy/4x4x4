@@ -34,6 +34,7 @@ class Board:
 	# make, check and clear moves
 	def copyAll(self, b):
 		""" copies the given board object into self.b """
+
 		self.currentLines = copy.deepcopy(b.currentLines)
 		self.moveList = copy.deepcopy(b.moveList)
 		self.pointsList = copy.deepcopy(b.pointsList)
@@ -59,6 +60,7 @@ class Board:
 		"""
 		Returns the other player's number
 		"""
+
 		newN = 0
 		if n == 1:
 			newN = 2
@@ -68,17 +70,10 @@ class Board:
 
 	def numMoves(self, n):
 		""" Finds how many moves have been made by each player """
-		p1 = 0
-		p2 = 0
-		for i in range(4):
-			for j in range(4):
-				for k in range(4):
-					current = self.b[i][j][k]
-					if (current == n):
-						p1 += 1
-					elif (current != 0):
-						p2 += 1
-		return [p1,p2]
+
+		o = self.otherNumber(n)
+		
+		return [len(self.pointsList[n]),len(self.pointsList[o])]
 
 	def move(self,n,p):
 		""" moves player n at point p, returns false if blocked """
@@ -141,175 +136,9 @@ class Board:
 					self.currentLines[(n, playerMoves)].add(line)
 
 	# Find lines
-	def findLinesInit(self, n):
-		""" 
-		Checks all lines on the board, returns the line number
-		of all lines for which player n has at least num points,
-		but player !n has none.
-		"""
-		allLines = []
-		for num in range(4):
-			lines = []
-			for l in range(76):
-				values = self.lineToValues(l)
-				p1 = 0
-				p2 = 0
-				for v in values:
-					if (v == n):
-						p1 += 1
-					elif (v != 0):
-						p2 += 1
-				if (p1 == num and p2 == 0):
-					lines += [l]
-			allLines += [lines]
-		return allLines
-
 	def findLines(self, n, num):
 		""" old find lines but faster """
 		return self.currentLines[(n, num)]
-
-	def findRows(self, n, num):
-		"""
-		Checks all the row lines on the board for having
-		at least num points for player n and none for player !n
-		"""
-		lines = []
-		for i in range(4):
-			for j in range(4):
-				p1 = 0
-				p2 = 0
-				for k in range(4):
-					current = self.b[k][i][j]
-					if (current == n):
-						p1 += 1
-					elif (current != 0):
-						p2 += 1
-				if (p1 >= num and p2 == 0):
-					lines += [4*i + j]
-		return lines
-
-	def findCols(self, n, num):
-		"""
-		Checks all the column lines on the board for having
-		at least num points for player n and none for player !n
-		"""
-		lines = []
-		for i in range(4):
-			for j in range(4):
-				p1 = 0
-				p2 = 0
-				for k in range(4):
-					current = self.b[j][k][i]
-					if (current == n):
-						p1 += 1
-					elif (current != 0):
-						p2 += 1
-				if (p1 >= num and p2 == 0):
-					lines += [16 + 4*i + j]
-		return lines
-
-	def findVrts(self, n, num):
-		"""
-		Checks all the vertical lines on the board for having
-		at least num points for player n and none for player !n
-		"""
-		lines = []
-		for i in range(4):
-			for j in range(4):
-				p1 = 0
-				p2 = 0
-				for k in range(4):
-					current = self.b[i][j][k]
-					if (current == n):
-						p1 += 1
-					elif (current != 0):
-						p2 += 1
-				if (p1 >= num and p2 == 0):
-					lines += [32 + 4*i + j]
-		return lines		
-
-	def findDias(self, n, num):
-		"""
-		Checks all the diagonal lines on the board for having
-		at least num points for player n and none for player !n
-		"""
-
-		lines = []
-
-		# x stays constant
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[i][j][j]
-				p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [48 + i]
-
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[i][j][3-j]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
-					p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [52 + i]
-
-
-		# y stays constant
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[j][i][j]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
-					p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [56 + i]
-
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[j][i][3-j]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
-					p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [60 + i]
-
-		# z stays constant
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[j][j][i]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
-					p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [64 + i]
-
-		for i in range(4):
-			p1 = 0
-			p2 = 0
-			for j in range(4):
-				current = self.b[j][3-j][i]
-				if (current == n):
-					p1 += 1
-				elif (current != 0):
-					p2 += 1
-			if (p1 >= num and p2 == 0):
-				lines += [68 + i]
-
-		# major diagonals
 
 	# Point/Line conversions
 	def lineToPoints(self, line):
@@ -568,7 +397,7 @@ class Board:
 				if (v == otherN):
 					blocked = True
 					break
-				if (v == n):
+				elif (v == n):
 					p1 += 1
 			if (p1 == num and not blocked):
 				openLines += [l]

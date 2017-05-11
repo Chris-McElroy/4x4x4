@@ -30,7 +30,21 @@ class Display:
 		self.mostRecentClick = False
 		self.approvedMove = False
 
+	def initializeBoard(self):
+		""" prepares to display board """
 
+		pygame.init()
+		display = (800, 600)
+		self.gameDisplay = pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
+		self.changeTitleText("")
+
+		self.createRects()
+
+		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
+		glTranslatef(0.0,0, -200)
+		glRotatef(20,0.3,0.5,0.04)
+
+	# control display
 	def mainMenu(self):
 		""" displays and checks for the main menu """
 
@@ -63,41 +77,6 @@ class Display:
 			pygame.display.update()
 			pygame.time.wait(10)
 
-	def createButtons(self):
-		""" returns the rectangles holding the buttons """
-		buttons = [[None],[None]]
-		for LR in range(2):
-			yPos = 120
-			for AI in self.AIList[1:]:
-				xPos = 100 if LR == 0 else 500
-				yPos += 52
-				dims = (200,50)
-				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
-
-		buttons += [pygame.Rect((350,400),(100,100))]
-		return buttons
-
-	def checkMenu(self, buttons, text):
-		""" checks for button presses in the menu """
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				quit()
-			if event.type == pygame.MOUSEBUTTONDOWN:
-				pos = pygame.mouse.get_pos()
-
-				# check if the AIs are selected
-				for LR in range(2):
-					for i in range(len(self.AIList)-1):
-						if buttons[LR][i+1].collidepoint(pos):
-							self.players[LR+1] = self.AIList[i+1]()
-							self.changeTitleText(text + "   " + self.AIList[i+1].__name__ + " player selected.")
-
-				# check if the Go button is clicked
-				if buttons[2].collidepoint(pos) and self.players[1] and self.players[2]:
-					return True
-		return False
-
 	def playAgain(self):
 		""" asks the user if they'd like to play again """
 
@@ -125,125 +104,18 @@ class Display:
 			pygame.display.update()
 			pygame.time.wait(5)
 
-	def checkExit(self,buttons,options):
-		""" checks the exit """
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				quit()
-			if event.type == pygame.MOUSEBUTTONDOWN:
-				pos = pygame.mouse.get_pos()
+	def displayBoard(self):
+		""" clears screen and redisplays board """
 
-				# check if the buttons are selected
-				for i in range(len(options)):
-					if buttons[i].collidepoint(pos):
-						choice = options[i]
-						return choice
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-		return False
-
-	def exitButtons(self):
-		""" create the exit buttons """
-
-		buttons = []
-		options = ["Play Again", "Switch Players", "View Replay", "Quit"]
-		yPos = 150
-		xPos = 300
-		for butt in options:
-			yPos += 80
-			dims = (200,60)
-			buttons += [pygame.Rect((xPos,yPos),dims)]
-
-		return buttons,options
-
-	def displayExit(self,buttons,options):
-		""" displays the exit """
-
-		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(230, 90, 0),(255, 110, 0)], [(180,0,0),(255,0,0)]]
-		pos = pygame.mouse.get_pos()
-
-		for i in range(len(options)):
-			colorN = 0
-			if buttons[i].collidepoint(pos):
-				colorN = 1
-			pygame.draw.rect(self.gameDisplay, colors[i][colorN], buttons[i])
-			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
-
-	def displayButtons(self, buttons, colorSet):
-		""" displays the buttons for the board """
-		for LR in range(2):
-			for i in range(len(self.AIList)-1):
-				color = colorSet[i+1][0]
-				pygame.draw.rect(self.gameDisplay, color,buttons[LR][i+1])
-
-		for LR in range(2):
-			for i in range(len(self.AIList)-1):
-				if isinstance(self.players[LR+1],self.AIList[i+1]):
-					pygame.draw.rect(self.gameDisplay, (255,255,255),buttons[LR][i+1], 5)
-				self.displayText(self.AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
-
-		if self.players[1] and self.players[2]:
-			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2])
-			self.displayText("Go!", 30, (400, 450))
-
-	def displayText(self,text,size,center,color = (255,255,255)):
-		largeText = pygame.font.Font('freesansbold.ttf',size)
-		text = largeText.render(text, True, color)
-		textR = text.get_rect()
-		textR.center = (center)
-		self.gameDisplay.blit(text, textR)
-
-	def initializeBoard(self):
-		""" prepares to display board """
-
-		pygame.init()
-		display = (800, 600)
-		self.gameDisplay = pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-		self.changeTitleText("")
-
-		self.createRects()
-
-		gluPerspective(3.5, (float(display[0])/float(display[1])), 0.1, 240)
-		glTranslatef(0.0,0, -200)
-		glRotatef(20,0.3,0.5,0.04)
-
-	def getMove(self):
 		self.checkInputs()
-		if self.approvedMove:
-			move = self.mostRecentClick
-			self.approvedMove = False
-			self.mostRecentClick = False
-			return move
-		else:
-			return False
 
-	def checkInputs(self):
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				quit()
+		self.displayPieces()
 
-			if event.type == pygame.MOUSEBUTTONDOWN:
-				pos = pygame.mouse.get_pos()
-				self.click_n = 0
+		pygame.display.flip()
 
-				# get a list of all sprites that are under the mouse cursor
-				clicked = False
-				for i in range(4):
-					for j in range(4):
-						for k in range(4):
-							if self.rects[i][j][k].collidepoint(pos):
-								clicked = True
-								if self.mostRecentClick == (i,j,k):
-									self.approvedMove = True
-								else:
-									self.mostRecentClick = (i,j,k)
-				if not clicked:
-					self.mostRecentClick = clicked
-
-			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_SPACE:
-					self.pauseDisplay()
+		glClearColor(0,0,0,0)
 
 	def pauseDisplay(self):
 		""" manages the paused game """
@@ -301,49 +173,146 @@ class Display:
 
 		self.displayBoard()
 
-	def displayBoard(self):
-		""" clears screen and redisplays board """
+	def updateBoard(self,board):
+		""" updates board """
 
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+		self.b = board
 
+	# check input
+	def checkExit(self,buttons,options):
+		""" checks the exit """
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+
+				# check if the buttons are selected
+				for i in range(len(options)):
+					if buttons[i].collidepoint(pos):
+						choice = options[i]
+						return choice
+
+		return False
+
+	def checkMenu(self, buttons, text):
+		""" checks for button presses in the menu """
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+
+				# check if the AIs are selected
+				for LR in range(2):
+					for i in range(len(self.AIList)-1):
+						if buttons[LR][i+1].collidepoint(pos):
+							self.players[LR+1] = self.AIList[i+1]()
+							self.changeTitleText(text + "   " + self.AIList[i+1].__name__ + " player selected.")
+
+				# check if the Go button is clicked
+				if buttons[2].collidepoint(pos) and self.players[1] and self.players[2]:
+					return True
+		return False
+
+	def getMove(self):
 		self.checkInputs()
-
-		self.displayPieces()
-
-		pygame.display.flip()
-
-		glClearColor(0,0,0,0)
-
-	def changeTitleText(self,string):
-		""" sets the title text """
-		self.titleText = string
-		self.displayProgress(self.progressText[1],self.progressText[2])
-
-	def title(self):
-		""" sets the title of the display to be string """
-
-		pygame.display.set_caption(self.titleText+self.progressText[0])
-		self.checkInputs()
-		pygame.display.flip()
-
-	def displayProgress(self,string,percent):
-		""" displays the progress bar and a short description """
-
-		percent = int(percent)
-		if percent < 0:
-			percent = 0
-		if percent > 100:
-			percent = 100
-
-		if not string:
-			self.progressText = ["","",0]
+		if self.approvedMove:
+			move = self.mostRecentClick
+			self.approvedMove = False
+			self.mostRecentClick = False
+			return move
 		else:
-			addedSpace = " "*int(140-1.2*len(self.titleText+string))
-			completed = "|" + " "*(percent/3)
-			todo = " "*(33-percent/3) + "|"
-			self.progressText = [addedSpace+string+completed+"=>"+todo,string,percent]
+			return False
 
-		self.title()
+	def checkInputs(self):
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+				self.click_n = 0
+
+				# get a list of all sprites that are under the mouse cursor
+				clicked = False
+				for i in range(4):
+					for j in range(4):
+						for k in range(4):
+							if self.rects[i][j][k].collidepoint(pos):
+								clicked = True
+								if self.mostRecentClick == (i,j,k):
+									self.approvedMove = True
+								else:
+									self.mostRecentClick = (i,j,k)
+				if not clicked:
+					self.mostRecentClick = clicked
+
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_SPACE:
+					self.pauseDisplay()
+
+	# create display objects
+	def displayExit(self,buttons,options):
+		""" displays the exit """
+
+		colors = [[(0,180,0),(0,255,0)],[(210,180,0),(255,255,0)],[(230, 90, 0),(255, 110, 0)], [(180,0,0),(255,0,0)]]
+		pos = pygame.mouse.get_pos()
+
+		for i in range(len(options)):
+			colorN = 0
+			if buttons[i].collidepoint(pos):
+				colorN = 1
+			pygame.draw.rect(self.gameDisplay, colors[i][colorN], buttons[i])
+			self.displayText(options[i], 20, buttons[i].center, (0,0,0))
+
+	def exitButtons(self):
+		""" create the exit buttons """
+
+		buttons = []
+		options = ["Play Again", "Switch Players", "View Replay", "Quit"]
+		yPos = 150
+		xPos = 300
+		for butt in options:
+			yPos += 80
+			dims = (200,60)
+			buttons += [pygame.Rect((xPos,yPos),dims)]
+
+		return buttons,options
+
+	def createButtons(self):
+		""" returns the rectangles holding the buttons """
+		buttons = [[None],[None]]
+		for LR in range(2):
+			yPos = 120
+			for AI in self.AIList[1:]:
+				xPos = 100 if LR == 0 else 500
+				yPos += 52
+				dims = (200,50)
+				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
+
+		buttons += [pygame.Rect((350,400),(100,100))]
+		return buttons
+
+	def displayButtons(self, buttons, colorSet):
+		""" displays the buttons for the board """
+		for LR in range(2):
+			for i in range(len(self.AIList)-1):
+				color = colorSet[i+1][0]
+				pygame.draw.rect(self.gameDisplay, color,buttons[LR][i+1])
+
+		for LR in range(2):
+			for i in range(len(self.AIList)-1):
+				if isinstance(self.players[LR+1],self.AIList[i+1]):
+					pygame.draw.rect(self.gameDisplay, (255,255,255),buttons[LR][i+1], 5)
+				self.displayText(self.AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
+
+		if self.players[1] and self.players[2]:
+			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2])
+			self.displayText("Go!", 30, (400, 450))
 
 	def displayPieces(self):
 		""" displays all the pieces on the board """
@@ -372,64 +341,6 @@ class Display:
 		self.flash_n += 1
 		if self.flash_n > 9:
 				self.flash_n = 0
-
-	def checkPoint(self, n):
-		""" makes sure to show p later on flashing red """
-		self.check_n = 0
-
-		checks = self.b.findLines(n,3)
-		checkPoints = self.b.lineToPoints(next(iter(checks)))
-		checkString = ""
-		for point in checkPoints:
-			if self.b.pointToValue(point) == 0:
-				checkString = self.pointToString(point)
-
-		self.changeTitleText("Check! Player " + str(self.b.otherNumber(n)) + " must respond at " + checkString + "!")
-
-	def getPoints(self):
-		""" gets the correct points based on the value of self.d """
-
-		points = []
-
-		if self.dir == 1:
-			points = [(i,3-k,3-j) for i in range(4) for j in range(4) for k in range(4)]
-
-		elif self.dir == 2:
-			points = [(3-k,3-i,3-j) for i in range(4) for j in range(4) for k in range(4)]
-
-		elif self.dir == 3:
-			points = [(3-i,k,3-j) for i in range(4) for j in range(4) for k in range(4)]
-
-		elif self.dir == 4:
-			points = [(k,i,3-j) for i in range(4) for j in range(4) for k in range(4)]
-
-		elif self.dir == 5:
-			points = [(i,j,3-k) for i in range(4) for j in range(4) for k in range(4)]
-
-		elif self.dir == 6:
-			points = [(3-i,j,k) for i in range(4) for j in range(4) for k in range(4)]
-
-		return points
-
-	def valueToMark(self,v):
-		""" converts value to a mark """
-		mark = ""
-
-		if (v == 0):
-			mark = "-"
-
-		elif (v == 1):
-			mark = "X"
-
-		elif (v == 2):
-			mark = "O"
-
-		return mark
-
-	def updateBoard(self,board):
-		""" updates board """
-
-		self.b = board
 
 	def cube(self, p, v):
 		d = .4
@@ -499,17 +410,44 @@ class Display:
 
 		return (x,y)
 
-	def displayShittyBoard(self):
-		""" displays the board reallllyy shitty """
-		for i in range(4):
-			lineString = ""
-			for j in range(4):
-				l = j + 4*i
-				values = self.b.lineToValues(l)
-				for v in values:
-					lineString += self.valueToMark(v) + " "
-				lineString += "  "
-			print lineString
+	def getPoints(self):
+		""" gets the correct points based on the value of self.d """
+
+		points = []
+
+		if self.dir == 1:
+			points = [(i,3-k,3-j) for i in range(4) for j in range(4) for k in range(4)]
+
+		elif self.dir == 2:
+			points = [(3-k,3-i,3-j) for i in range(4) for j in range(4) for k in range(4)]
+
+		elif self.dir == 3:
+			points = [(3-i,k,3-j) for i in range(4) for j in range(4) for k in range(4)]
+
+		elif self.dir == 4:
+			points = [(k,i,3-j) for i in range(4) for j in range(4) for k in range(4)]
+
+		elif self.dir == 5:
+			points = [(i,j,3-k) for i in range(4) for j in range(4) for k in range(4)]
+
+		elif self.dir == 6:
+			points = [(3-i,j,k) for i in range(4) for j in range(4) for k in range(4)]
+
+		return points
+
+	# set checks, flashing, and titles
+	def checkPoint(self, n):
+		""" makes sure to show p later on flashing red """
+		self.check_n = 0
+
+		checks = self.b.findLines(n,3)
+		checkPoints = self.b.lineToPoints(next(iter(checks)))
+		checkString = ""
+		for point in checkPoints:
+			if self.b.pointToValue(point) == 0:
+				checkString = self.pointToString(point)
+
+		self.changeTitleText("Check! Player " + str(self.b.otherNumber(n)) + " must respond at " + checkString + "!")
 
 	def setWinningMove(self,p):
 		""" sets the winning move """
@@ -551,6 +489,72 @@ class Display:
 		for n in p:
 			string += str(1+n)
 		return string
+
+	def changeTitleText(self,string):
+		""" sets the title text """
+		self.titleText = string
+		self.displayProgress(self.progressText[1],self.progressText[2])
+
+	def title(self):
+		""" sets the title of the display to be string """
+
+		pygame.display.set_caption(self.titleText+self.progressText[0])
+		self.checkInputs()
+		pygame.display.flip()
+
+	def displayProgress(self,string,percent):
+		""" displays the progress bar and a short description """
+
+		percent = int(percent)
+		if percent < 0:
+			percent = 0
+		if percent > 100:
+			percent = 100
+
+		if not string:
+			self.progressText = ["","",0]
+		else:
+			addedSpace = " "*int(140-1.2*len(self.titleText+string))
+			completed = "|" + " "*(percent/3)
+			todo = " "*(33-percent/3) + "|"
+			self.progressText = [addedSpace+string+completed+"=>"+todo,string,percent]
+
+		self.title()
+
+	def displayText(self,text,size,center,color = (255,255,255)):
+		largeText = pygame.font.Font('freesansbold.ttf',size)
+		text = largeText.render(text, True, color)
+		textR = text.get_rect()
+		textR.center = (center)
+		self.gameDisplay.blit(text, textR)
+
+	# for testing
+	def displayShittyBoard(self):
+		""" displays the board reallllyy shitty """
+		for i in range(4):
+			lineString = ""
+			for j in range(4):
+				l = j + 4*i
+				values = self.b.lineToValues(l)
+				for v in values:
+					lineString += self.valueToMark(v) + " "
+				lineString += "  "
+			print lineString
+
+	def valueToMark(self,v):
+		""" converts value to a mark """
+		mark = ""
+
+		if (v == 0):
+			mark = "-"
+
+		elif (v == 1):
+			mark = "X"
+
+		elif (v == 2):
+			mark = "O"
+
+		return mark
 
 
 
