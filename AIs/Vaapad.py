@@ -165,19 +165,21 @@ class Vaapad:
 					self.displayForce(percent,ply,True)
 					oldPercent = percent
 
-				for pair in openCombos[i]:
-					self.b.move(self.n,pair[0])
-					self.b.move(self.o,pair[1])
+				if self.shouldForce(openCombos,i):
 
-				newC, newOC = self.fastForce()
+					for pair in openCombos[i]:
+						self.b.move(self.n,pair[0])
+						self.b.move(self.o,pair[1])
 
-				for c in range(len(newOC)):
-					nextOC += [openCombos[i] + newOC[c]]
-				for c in range(len(newC)):
-					combos += [openCombos[i] + newC[c]]
+					newC, newOC = self.fastForce()
 
-				self.b = Board()
-				self.b.copyAll(oldBoard)
+					for c in range(len(newOC)):
+						nextOC += [openCombos[i] + newOC[c]]
+					for c in range(len(newC)):
+						combos += [openCombos[i] + newC[c]]
+
+					self.b = Board()
+					self.b.copyAll(oldBoard)
 
 			if combos:
 				combo = self.chooseMove(combos)
@@ -187,6 +189,22 @@ class Vaapad:
 			openCombos = nextOC
 
 		return False
+
+	def shouldForce(self,openCombos,i):
+		""" tests whether you should try the given forcing combination """
+		for n in range(2,len(openCombos[i])+1):
+			lastN = [openCombos[i][-n:]]
+
+			for c in range(i):
+				theSame = True
+				for pair in openCombos[c][-n:]:
+					if pair not in lastN:
+						theSame = False
+						break
+				if theSame:
+					return False
+
+		return True
 
 	def fastForce(self):
 		""" forces to finish REL quick """
