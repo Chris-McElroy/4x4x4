@@ -7,6 +7,7 @@ class Vaapad:
 	The AI class for tic tac toe.  Decides where the AI will go when fed with a board.
 	"""
 
+	# general class functions
 	def __init__(self):
 		""" Stores board and player info for easy access """
 		self.b = Board() # Board object, not array
@@ -22,6 +23,21 @@ class Vaapad:
 		self.comboLen = False
 		self.ply = 4
 
+	def chooseMove(self,moves):
+		"""
+		chooses a move from the available one in the determined tiebreaking way
+		Currently: Random
+		"""
+
+		if (len(moves) > 0):
+			return random.choice(moves)
+		return self.undecided
+
+	def colors(self):
+		""" returns the colors of vaapad """
+		return [(150,0,230),(80, 0, 130)]
+
+	# high level move functions
 	def move(self,board,n, display):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
@@ -48,21 +64,14 @@ class Vaapad:
 
 		return move
 
-	def chooseMove(self,moves):
-		"""
-		chooses a move from the available one in the determined tiebreaking way
-		Currently: Random
-		"""
-
-		if (len(moves) > 0):
-			return random.choice(moves)
-		return self.undecided
-
 	def assuredMove(self):
 		self.decided, self.assured = (False,)*2
 
 		if self.forcingCombo:
-			if self.forcingCombo[0][1] in self.b.myPoints(self.o):
+			if self.forcingCombo[0][0] not in self.b.myPoints(self.n):
+				self.forcingCombo = []
+				self.comboLen = 0
+			elif self.forcingCombo[0][1] in self.b.myPoints(self.o):
 				# if they're moving in line with the combo, keep it up
 				self.assured = True
 				self.decided = True
@@ -82,7 +91,7 @@ class Vaapad:
 			self.decided = True
 			return move1
 
-		move3 = self.forceToFinish()
+		move3 = self.findShatterpoint()
 		if self.assured:
 			self.comboLen = len(self.forcingCombo)
 			self.d.displayProgress("Forced Shatterpoint: ", 100.0/self.comboLen)
@@ -93,6 +102,7 @@ class Vaapad:
 		
 		return move4
 
+	# specialized checking functions
 	def fourInARow(self,n):
 		""" check if there's anywhere self could go to get four in a row """
 
@@ -128,43 +138,92 @@ class Vaapad:
 					moves += [p]
 		return self.chooseMove(winningMoves)
 
-	def forceToFinish(self):
+	def findShatterpoint(self):
 		"""
 		Forces the other player until there are no forces left, or someone wins
 		Returns the point used successfully if player n wins,
 		and self.undecided if the other player wins or nothing happens
 		"""
 
-		pairs = self.b.findForces(self.n)
-		for ply in range(32):
-			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, 1)
-			if winningMoves:
-				self.assured = True
-				self.decided = True
+		ply = 0
+		oldBoard = Board()
+		oldBoard.copyAll(self.b)
+		combos, openCombos = self.fastForce()
+		self.displayForce(100,ply,True)
 
+		while openCombos:
+			total = len(openCombos)
+			oldPercent = 0
+			ply += 1
+
+			nextOC = []
+
+			for i in range(total):
+
+				percent = 100.0*i/total
+				if percent >= oldPercent + 3:
+					self.displayForce(percent,ply,True)
+					oldPercent = percent
+
+				for pair in openCombos[i]:
+					self.b.move(self.n,pair[0])
+					self.b.move(self.o,pair[1])
+
+				newC, newOC = self.fastForce()
+
+				for c in range(len(newOC)):
+					nextOC += [openCombos[i] + newOC[c]]
+				for c in range(len(newC)):
+					combos += [openCombos[i] + newC[c]]
+
+				self.b = Board()
+				self.b.copyAll(oldBoard)
+
+			if combos:
 				combo = self.chooseMove(combos)
 				self.forcingCombo = combo
-				for i in range(len(combos)):
-					if combo == combos[i]:
-						return combo[0][0]
-			if not keepSearching:
-				break
+				return combo[0][0]
+
+			openCombos = nextOC
 
 		return False
 
-	def forceToFinishR(self, pairs, ply, original):
-		""" solves force to finish recursively """
+	def fastForce(self):
+		""" forces to finish REL quick """
 
+		pairs = self.b.findForces(self.n)
 		lenPairs = len(pairs)
-		moves = []
+		allowedP = self.forceCheck(pairs,lenPairs)
+
 		combos = []
+		openCombos = []
+
+		for pairN in allowedP[0]:
+			for i in allowedP[1]:
+
+				self.b.move(self.n,pairs[pairN][i])
+				self.b.move(self.o,pairs[pairN][1-i])
+
+				itWorks = self.updateWinsForPoint(pairs[pairN],i)
+				if itWorks:
+					combos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
+				else:
+					openCombos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
+
+				self.b.clearPoint(pairs[pairN][i])
+				self.b.clearPoint(pairs[pairN][1-i])
+
+		return combos, openCombos
+
+	def forceCheck(self,pairs,lenPairs):
+		""" sees if it can pull anti-force combo """
+
 		otherChecks = self.b.findLines(self.o,3)
-		keepSearching = False
 
-		allowedPairs = range(lenPairs)
-		allowedIndex = range(2)
+		allowedPairs = []
+		allowedIndex = []
 
-		if len(otherChecks) > 0:
+		if len(otherChecks) and lenPairs:
 			checkLine = self.b.lineToPoints(next(iter(otherChecks)))
 			for p in checkLine:
 				if self.b.pointToValue(p) == 0:
@@ -178,55 +237,27 @@ class Vaapad:
 					allowedIndex = [i]
 					allAllowed = False
 				if i == 1:
-					i = 0
 					pairN += 1
-				if i == 0:
-					i = 1
+				i = 1-i
 				if pairN == lenPairs:
-					return moves # fucking give the fuck up
+					allAllowed = False # fucking give the fuck up
+		else:
+			allowedPairs = range(lenPairs)
+			allowedIndex = range(2)
 
-		for pairN in allowedPairs:
-			if original:
-				text = "Offensive "+str(ply)+"-ply Search: "
-				percent = 100.0*pairN/len(allowedPairs)
-				if original == 2:
-					text = "Defensive "+str(ply)+"-ply Search: "
-				if moves:
-					text =  "Successful "+str(ply)+"-ply Search: "
-				self.d.displayProgress(text, percent)
-			for i in allowedIndex:
-				newAI = Vaapad()
-				newAI.updateAll(self.b,self.n,self.d)
-				newAI.updateForForce(pairs[pairN],i)
-				if newAI.assured:
-					moves += [pairs[pairN][i]]
-					combos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
-				elif ply > 0:
-					otherChecks = newAI.b.findLines(newAI.o,3)
-					newPairs = newAI.b.findForces(newAI.n)
-					if len(otherChecks) == 0:
-						futureM, futureC, futureKS = newAI.forceToFinishR(newPairs, ply-1, 0)
-						if futureKS:
-							keepSearching = True
-						if futureM != []:
-							for m in range(len(futureM)):
-								combos += [[[pairs[pairN][i],pairs[pairN][1-i]]] + futureC[m]]
-								moves += [pairs[pairN][i]]
-					else:
-						checkLine = newAI.b.lineToPoints(next(iter(otherChecks)))
-						for p in checkLine:
-							if newAI.b.pointToValue(p) == 0:
-								checkP = p
-						for pair in newPairs:
-							for i in [0,1]:
-								if pair[i] == checkP:
-									newAI.updateForForce(pair,i)
+		return [allowedPairs,allowedIndex]
 
-				elif ply == 0:
-					keepSearching = True
+	def displayForce(self,percent,ply,offense):
+		""" displays progress text for forcing """
 
-		return moves, combos, keepSearching
+		text = "Offensive "+str(ply)+"-ply Search: "
+		if not offense:
+			text = "Defensive "+str(ply)+"-ply Search: "
+		if self.assured:
+			text =  "Successful "+str(ply)+"-ply Search: "
+		self.d.displayProgress(text, percent)
 
+	# brute force checking functions
 	def lookAhead(self):
 		"""
 		Brunt of AI, looks ahead, keeps track of if win is strong/weak
@@ -251,7 +282,7 @@ class Vaapad:
 
 				badGuy.assuredMove()
 
-	def focusOnTheNow(self):
+	def magicNumber(self):
 		"""
 		where the magic numbers come in
 		"""
@@ -272,7 +303,7 @@ class Vaapad:
 		and p = [-1,-1,-1] if the other player wins or nothing happens
 		"""
 
-		bestScore = self.focusOnTheNow()
+		bestScore = self.magicNumber()
 		bestMove = []
 		mNum = 0
 
@@ -284,7 +315,7 @@ class Vaapad:
 			goodGuy.updateAll(self.b,self.n,self.d)
 			goodGuy.b.move(goodGuy.n,move)
 
-			score = goodGuy.focusOnTheNow()
+			score = goodGuy.magicNumber()
 			if score > bestScore:
 				bestMove = [move]
 				bestScore = score
@@ -296,16 +327,47 @@ class Vaapad:
 	def otherBadLookAhead(self):
 		""" just tries to make sure other cant force to finish """
 
-		pairs = self.b.findForces(self.n)
-		for ply in range(32):
-			winningMoves, combos, keepSearching = self.forceToFinishR(pairs, ply, 2)
-			self.forcingCombo = combos
-			if winningMoves:
-				self.assured = True
-				self.decided = True
+		ply = 0
+		oldBoard = Board()
+		oldBoard.copyAll(self.b)
+		combos, openCombos = self.fastForce()
+		self.displayForce(100,ply,True)
+
+		while openCombos:
+			total = len(openCombos)
+			oldPercent = 0
+			ply += 1
+
+			nextOC = []
+
+			for i in range(total):
+
+				percent = 100.0*i/total
+				if percent >= oldPercent + 3:
+					self.displayForce(percent,ply,False)
+					oldPercent = percent
+
+				for pair in openCombos[i]:
+					self.b.move(self.n,pair[0])
+					self.b.move(self.o,pair[1])
+
+				newC, newOC = self.fastForce()
+
+				for c in range(len(newOC)):
+					nextOC += [openCombos[i] + newOC[c]]
+				for c in range(len(newC)):
+					combos += [openCombos[i] + newC[c]]
+
+				self.b = Board()
+				self.b.copyAll(oldBoard)
+
+			if combos:
+				self.forcingCombo = combos
 				break
-			if not keepSearching:
-				break
+
+			openCombos = nextOC
+
+		return False
 
 	def guardLookAhead(self):
 		""" works to defend strong opponent moves by limiting to blocks """
@@ -326,24 +388,12 @@ class Vaapad:
 		else:
 			return self.moves
 
+	# updating functions
 	def updateForPoint(self, p):
 		"""
 		Updates pairs, moves, and lines after point p has been filled
 		More efficient than updating fully each time
 		"""
-
-	def updateForForce(self, pair, myNum):
-		"""
-		Fills given pair and checks for win along given lines
-		myNum is position chosen by player n (either 0 or 1)
-		"""
-
-		otherNum = 0 if myNum == 1 else 1
-
-		self.b.move(self.n,pair[myNum])
-		self.b.move(self.o,pair[otherNum])
-
-		self.updateWinsForPoint(pair,myNum)
 
 	def updateAll(self, board, n, display):
 		"""
@@ -364,39 +414,24 @@ class Vaapad:
 		otherNum = 0 if myNum == 1 else 1
 
 		wins = self.b.openLinesForPoint(self.n,pair[myNum],4)
-		if len(wins) > 0:
+		if wins:
 			self.assured = True
 			self.decided = True
+			return True
 
 		checks = self.b.openLinesForPoint(self.n,pair[myNum],3)
 		other = self.b.openLinesForPoint(self.o,pair[otherNum],4)
-		if  len(checks) > 0 and len(other) == 0:
+		if  checks and not other:
 			self.assured = True
 			self.decided = True
+			return True
+
+		return False
 
 	def checkWins(self, p):
 		"""
 		Returns True if p causes a win, False if the game is still being played
 		"""
-
-	def valueToMark(self,v):
-		""" converts value to a mark """
-		mark = ""
-
-		if (v == 0):
-			mark = "-"
-
-		elif (v == 1):
-			mark = "X"
-
-		elif (v == 2):
-			mark = "O"
-
-		return mark
-
-	def colors(self):
-		""" returns the colors of vaapad """
-		return [(150,0,230),(80, 0, 130)]
 
 
 
