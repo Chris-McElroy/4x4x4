@@ -544,7 +544,7 @@ class Display:
 		if not string:
 			self.progressText = ["","",0]
 		else:
-			addedSpace = " "*int(140-1.3*len(self.titleText+string))
+			addedSpace = " "*int(145-1.36*len(self.titleText+string))
 			completed = "|" + " "*(percent/3)
 			todo = " "*(33-percent/3) + "|"
 			self.progressText = [addedSpace+string+completed+"=>"+todo,string,percent]

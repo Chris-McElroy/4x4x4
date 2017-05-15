@@ -57,12 +57,54 @@ class Vaapad:
 		return move
 
 	def assuredMove(self):
-		self.decided, self.assured = (False,)*2
+		""" attempts to make all the right moves in all the right places """
 
+		# see if its in the middle of a force
+		move = self.keepForcing()
+		if self.assured:
+			return move
+
+		# check for four in a row on both sides
+		move = self.fourInARow(self.n)
+		if move:
+			self.assured = True
+			self.decided = True
+			return move
+
+		move = self.fourInARow(self.o)
+		if move:
+			self.decided = True
+			return move
+
+		# search for a new force
+		move = self.findShatterpoint()
+		if self.assured:
+			self.comboLen = len(self.forcingCombo)
+			self.d.displayProgress("Forced Shatterpoint: ", 100.0/self.comboLen)
+			pygame.time.wait(400)
+			return move
+
+		# check what to defend
+		self.otherLookAhead()
+
+		if self.decided:
+			print "Not sure what happened here, please let Chris know"
+			print "If you could record the moves that'd be really great"
+			print "here they are: ", self.b.moveList
+
+		# search for a strong move
+		return self.strongLookAhead()
+	
+		return False
+
+	# specialized checking functions
+	def keepForcing(self):
+		""" keeps a force going if it was happening """
 		if self.forcingCombo:
 			if self.forcingCombo[0][0] not in self.b.myPoints(self.n):
 				self.forcingCombo = []
 				self.comboLen = 0
+				return False
 			elif self.forcingCombo[0][1] in self.b.myPoints(self.o):
 				# if they're moving in line with the combo, keep it up
 				self.assured = True
@@ -72,38 +114,8 @@ class Vaapad:
 				self.d.displayProgress("Forced Shatterpoint: ", percent)
 				pygame.time.wait(400)
 				return self.forcingCombo[0][0]
-
-		# check for four in a row on both sides
-		move0 = self.fourInARow(self.n)
-		if move0:
-			self.assured = True
-			self.decided = True
-			return move0
-
-		move1 = self.fourInARow(self.o)
-		if move1:
-			self.decided = True
-			return move1
-
-		move3 = self.findShatterpoint()
-		if self.assured:
-			self.comboLen = len(self.forcingCombo)
-			self.d.displayProgress("Forced Shatterpoint: ", 100.0/self.comboLen)
-			pygame.time.wait(400)
-			return move3
-
-		self.otherLookAhead()
-
-		if self.decided:
-			print "Not sure what happened here, please let Chris know"
-			print "If you could record the moves from the replay that'd be really great"
-			print "here they are: ", self.b.moveList
-
-		return self.strongLookAhead()
-	
 		return False
 
-	# specialized checking functions
 	def fourInARow(self,n):
 		""" check if there's anywhere self could go to get four in a row """
 
@@ -316,26 +328,68 @@ class Vaapad:
 		"""
 
 		moves = []
+		i = 0
 		totalM = len(self.moves)
 
-		for i in range(totalM):
+		forceMoves = []
+		pairs = self.b.findForces(self.n)
+		for pair in pairs:
+			for m in pair:
+				forceMoves += [m]
+
+		badGuy = Vaapad()
+		badGuy.updateAll(self.b,self.o,self.d)
+
+		for move in self.moves:
 			text = "Strong Look-Ahead: "
 			if moves:
-				text = "Successful Look-Ahead"
+				text = "Successful Look-Ahead: "
 			self.d.displayProgress(text, 100.0*i/totalM)
 
-			badGuy = Vaapad()
-			badGuy.updateAll(self.b,self.o,self.d)
-			badGuy.b.move(badGuy.o,self.moves[i])
-			# if they don't have any way to block the force, you're great
-			if not badGuy.otherLookAhead(False, 1):
-				moves += [self.moves[i]]
+			shouldMove = self.shouldStrong(move,forceMoves)
+
+			if shouldMove:
+				if self.shouldStrong(move,forceMoves):
+					badGuy.b.move(badGuy.o,move)
+					# if they don't have any way to block the force, you're great
+					if not badGuy.otherLookAhead(False, 1):
+						moves += [move]
+
+					badGuy.b.clearPoint(move)
+
+			# if (move in moves):
+			# 	if not shouldMove:
+			# 		print "FUCKED UP LOOKIE HERE ", move
+			# 	else:
+			# 		print "awesome!!!"
+			# else:
+			# 	if shouldMove:
+			# 		print "acceptable"
+			# 	else:
+			# 		print "good call"
+
+			i += 1
 
 		if moves:
 			self.assured = True
 			self.decided = True
 
 		return self.chooseMove(moves)
+
+	def shouldStrong(self,move,forceMoves):
+		""" decides whether a point's worth it to try forcing """
+		if move in forceMoves:
+			return False
+		openLines = []
+		for i in range(2):
+			openLines += self.b.openLinesForPoint(self.n,move,i)
+		if len(openLines) < 3:
+			return False
+		goodLines = self.b.openLinesForPoint(self.n,move,1)
+		if len(goodLines) < 2:
+			return False
+
+		return True
 
 	def weakLookAhead(self):
 		""" looks ahead, tries to set up a decent force """
@@ -344,9 +398,8 @@ class Vaapad:
 		pairs = self.b.findForces(self.n)
 		for pair in pairs:
 			for m in pair:
-				forceMoves += [pair]
+				forceMoves += [m]
 
-		futureForce = False
 		bestScore = self.magicNumber()
 		orig = bestScore
 		bestMoves = []
@@ -365,10 +418,10 @@ class Vaapad:
 			if self.moves[i] not in forceMoves:
 				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
 
-				if (goodGuy.assured or not finished) and not futureForce:
-					futureForce = True
-					bestScore = score
-					bestMoves = []
+				score = score*1.25
+
+
+			# print "totalScore = ", score
 
 			if bestScore < score:
 				bestScore = score
@@ -383,12 +436,24 @@ class Vaapad:
 		where the magic numbers come in
 		"""
 
+		ODQ = .1
+		PLQ = 2
+
 		score = 0
-		linesSet = [[self.b.findLines(self.o,i) for i in range(1,5)]]
-		linesSet += [[self.b.findLines(self.n,i) for i in range(1,5)]]
+		linesSet = [[len(self.b.findLines(self.o,num)) for num in range(1,5)]]
+		linesSet += [[len(self.b.findLines(self.n,num)) for num in range(1,5)]]
 		for i in range(2):
 			for num in range(4):
-				score += (num/.9+1)*len(linesSet[i][num])*(2*i-0.7)
+				score += linesSet[i][num]*(2*i-1+ODQ)
+
+		# print "linesScore = ", score
+
+		planesSet = self.getPlanes(self.n)
+		for i in range(2):
+			for num in range(16):
+				score += PLQ*planesSet[i][num]*(2*i-1+ODQ)*(1/2+(num+1)/2)
+
+		# print "magicScore = ", score
 
 		return score
 
@@ -403,7 +468,9 @@ class Vaapad:
 		possMoves = []
 		workingMoves = []
 
-		test = badGuy.findShatterpoint(32, 2, depth)
+		disp = 0 if depth == 1 else 2
+
+		test = badGuy.findShatterpoint(32, disp, depth)
 
 		if badGuy.assured:
 			for pair in badGuy.forcingCombo:
@@ -424,17 +491,21 @@ class Vaapad:
 			badGuy.b = Board()
 			badGuy.b.copyAll(self.b)
 
+			i = 0
 			lenPM = len(possMoves)
 
-			for i in range(lenPM):
-				badGuy.assured = False
-				badGuy.b.move(badGuy.o,possMoves[i])
-				check = badGuy.fourInARow(badGuy.o)
+			for move in possMoves:
 				text = ""
 				if depth:
 					text += "(" + str(depth) + "-deep) "
 				text += "Checking Blocks: "
 				self.d.displayProgress(text,100.0*i/lenPM)
+
+				badGuy.assured = False
+				badGuy.b.move(badGuy.o,move)
+
+				check = badGuy.fourInARow(badGuy.o)
+				
 
 				if check:
 					badGuy.b.move(badGuy.n,check)
@@ -442,21 +513,27 @@ class Vaapad:
 					goodGuy = Vaapad()
 					goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d)
 
-					if goodGuy.otherLookAhead(False, depth+1):
-						workingMoves += [possMoves[i]]
+					lookFurther = goodGuy.otherLookAhead(False, depth+1)
 
 					badGuy.b.clearPoint(check)
-					badGuy.b.clearPoint(possMoves[i])
+					badGuy.b.clearPoint(move)
+
+					if lookFurther:	
+						if not fullSearch:
+							return True
+						workingMoves += [move]
 
 				else:
 					finished = badGuy.findShatterpoint(6, ["Checking Blocks (",i,lenPM], depth)
 
-					badGuy.b.clearPoint(possMoves[i])
+					badGuy.b.clearPoint(move)
 
 					if (not badGuy.assured) and finished:
 						if not fullSearch:
 							return True
-						workingMoves += [possMoves[i]]
+						workingMoves += [move]
+
+				i += 1
 
 			if workingMoves:
 				self.moves = workingMoves
@@ -468,6 +545,41 @@ class Vaapad:
 
 		elif not fullSearch:
 			return True
+
+	def getPlanes(self,n):
+		"""
+		returns a list of the number of planes that player has,
+		sorted by the number of points that player has unblocked on the plane
+		"""
+		r4 = range(4)
+		planes = []
+		o = self.b.otherNumber(n)
+		sortedPlanes = [[0 for i in range(16)] for j in range(2)]
+
+		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((j,k,i)) for i in r4 for j in r4] for k in r4]
+
+		planes += [[self.b.pointToValue((i,i,j)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((3-i,i,j)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((j,i,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((j,3-i,i)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((i,j,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((i,j,3-i)) for i in r4 for j in r4]]
+
+		for plane in planes:
+			myN = plane.count(n)
+			osN = plane.count(o)
+			if not myN:
+				if osN:
+					sortedPlanes[0][osN] += 1
+			if not osN:
+				if myN:
+					sortedPlanes[1][myN] += 1
+
+		return sortedPlanes
 
 	# updating functions
 	def updateForPoint(self, p):
