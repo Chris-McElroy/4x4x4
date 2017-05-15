@@ -20,6 +20,9 @@ class Human:
 			display.displayBoard()
 			move = display.getMove()
 
+			if move == "End Preset":
+				return move
+
 			if move and tuple(move) in board.openPoints():
 				goodInput = True
 			elif move:

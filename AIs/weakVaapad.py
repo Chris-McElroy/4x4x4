@@ -3,7 +3,7 @@ from Display import *
 import pygame
 import random
 
-class Vaapad:
+class weakVaapad:
 	"""
 	The AI class for tic tac toe.  Decides where the AI will go when fed with a board.
 	"""
@@ -99,7 +99,7 @@ class Vaapad:
 			print "If you could record the moves from the replay that'd be really great"
 			print "here they are: ", self.b.moveList
 
-		return self.strongLookAhead()
+		# return self.strongLookAhead()
 	
 		return False
 
@@ -324,7 +324,7 @@ class Vaapad:
 				text = "Successful Look-Ahead"
 			self.d.displayProgress(text, 100.0*i/totalM)
 
-			badGuy = Vaapad()
+			badGuy = weakVaapad()
 			badGuy.updateAll(self.b,self.o,self.d)
 			badGuy.b.move(badGuy.o,self.moves[i])
 			# if they don't have any way to block the force, you're great
@@ -356,7 +356,7 @@ class Vaapad:
 		for i in range(nMoves):
 			self.d.displayProgress("Finding Optimal Move: ",100.0*i/nMoves)
 
-			goodGuy = Vaapad()
+			goodGuy = weakVaapad()
 			goodGuy.updateAll(self.b,self.n,self.d)
 			goodGuy.b.move(self.n,self.moves[i])
 
@@ -398,7 +398,7 @@ class Vaapad:
 		if depth == 3:
 			return False
 
-		badGuy = Vaapad()
+		badGuy = weakVaapad()
 		badGuy.updateAll(self.b,self.o,self.d)
 		possMoves = []
 		workingMoves = []
@@ -439,7 +439,7 @@ class Vaapad:
 				if check:
 					badGuy.b.move(badGuy.n,check)
 
-					goodGuy = Vaapad()
+					goodGuy = weakVaapad()
 					goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d)
 
 					if goodGuy.otherLookAhead(False, depth+1):

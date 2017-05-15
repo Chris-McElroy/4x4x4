@@ -6,6 +6,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from Board import *
+from AIs.Human import *
 
 class Display:
 	""" Displays the board """
@@ -29,6 +30,7 @@ class Display:
 		self.rects = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 		self.mostRecentClick = False
 		self.approvedMove = False
+		self.preset = players[0] != None
 
 	def initializeBoard(self):
 		""" prepares to display board """
@@ -107,6 +109,9 @@ class Display:
 	def displayBoard(self):
 		""" clears screen and redisplays board """
 
+		if self.preset:
+			glClearColor(.4,.4,.4,.4)
+
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
 		self.checkInputs()
@@ -123,11 +128,15 @@ class Display:
 		oldTitle = self.titleText
 		self.changeTitleText("PAUSED")
 
-		glClearColor(.4,.4,.4,.4)
-		self.displayBoard()
-
 		while paused:
+			glClearColor(.4,.4,.4,.4)
+			glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+			self.displayPieces()
+			pygame.display.flip()
+			glClearColor(0,0,0,0)
+
 			pygame.time.wait(10)
+
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					pygame.quit()
@@ -158,9 +167,6 @@ class Display:
 					
 					if event.key == pygame.K_SPACE:
 						paused = False
-
-					glClearColor(.4,.4,.4,.4)
-					self.displayBoard()
 
 		self.changeTitleText(oldTitle)
 		self.dir = 1
@@ -213,17 +219,25 @@ class Display:
 							self.changeTitleText(text + "   " + self.AIList[i+1].__name__ + " player selected.")
 
 				# check if the Go button is clicked
-				if buttons[2].collidepoint(pos) and self.players[1] and self.players[2]:
-					return True
+				if self.players[1] and self.players[2]:
+					if buttons[2][0].collidepoint(pos):
+						return True
+					if buttons[2][1].collidepoint(pos):
+						self.players[0] = Human()
+						return True
+
 		return False
 
 	def getMove(self):
+		prepreset = self.preset
 		self.checkInputs()
 		if self.approvedMove:
 			move = self.mostRecentClick
 			self.approvedMove = False
 			self.mostRecentClick = False
 			return move
+		if self.preset != prepreset:
+			return "End Preset"
 		else:
 			return False
 
@@ -254,6 +268,8 @@ class Display:
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
 					self.pauseDisplay()
+				if event.key == pygame.K_RETURN:
+					self.preset = False
 
 	# create display objects
 	def displayExit(self,buttons,options):
@@ -294,7 +310,7 @@ class Display:
 				dims = (200,50)
 				buttons[LR] += [pygame.Rect((xPos,yPos),dims)]
 
-		buttons += [pygame.Rect((350,400),(100,100))]
+		buttons += [[pygame.Rect((350,400),(100,100)),pygame.Rect((350,510),(100,40))]]
 		return buttons
 
 	def displayButtons(self, buttons, colorSet):
@@ -311,8 +327,11 @@ class Display:
 				self.displayText(self.AIList[i+1].__name__, 20, buttons[LR][i+1].center, (0,0,0))
 
 		if self.players[1] and self.players[2]:
-			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2])
+			pygame.draw.rect(self.gameDisplay, (0,180,0),buttons[2][0])
 			self.displayText("Go!", 30, (400, 450))
+
+			pygame.draw.rect(self.gameDisplay, (180,0,0),buttons[2][1])
+			self.displayText("Preset Board",15, (400,530))
 
 	def displayPieces(self):
 		""" displays all the pieces on the board """
@@ -499,8 +518,19 @@ class Display:
 		""" sets the title of the display to be string """
 
 		pygame.display.set_caption(self.titleText+self.progressText[0])
+
+		if self.preset:
+			glClearColor(.4,.4,.4,.4)
+
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
 		self.checkInputs()
+
+		self.displayPieces()
+
 		pygame.display.flip()
+
+		glClearColor(0,0,0,0)
 
 	def displayProgress(self,string,percent):
 		""" displays the progress bar and a short description """
@@ -514,7 +544,7 @@ class Display:
 		if not string:
 			self.progressText = ["","",0]
 		else:
-			addedSpace = " "*int(140-1.2*len(self.titleText+string))
+			addedSpace = " "*int(140-1.3*len(self.titleText+string))
 			completed = "|" + " "*(percent/3)
 			todo = " "*(33-percent/3) + "|"
 			self.progressText = [addedSpace+string+completed+"=>"+todo,string,percent]

@@ -1,6 +1,7 @@
 from Board import *
 from Display import *
 from AIs.Vaapad import *
+from AIs.weakVaapad import *
 from AIs.Wildfire import *
 from AIs.Human import *
 from AIs.Brute import *
@@ -17,7 +18,7 @@ class Master:
 		self.n = 0
 		self.forced = False
 		self.wins = [0,0]
-		self.AIList = [None,Human,Vaapad,Wildfire,Brute]
+		self.AIList = [None,Vaapad,Human,weakVaapad,Wildfire,Brute]
 
 	def main(self):
 		""" Main controller of everything, likeyado """
@@ -28,10 +29,6 @@ class Master:
 		while displayOn:
 
 			players = self.d.mainMenu()
-
-			# setsN = raw_input("First to what?")
-			
-			# p1 = raw_input("Who plays first?")
 
 			currentSet = True
 			while currentSet:
@@ -58,6 +55,48 @@ class Master:
 		pygame.quit()
 		quit(0)
 
+	def presetBoard(self, players):
+		self.b = Board()
+		self.d = Display(self.b,self.AIList,players)
+		self.d.initializeBoard()
+		continueGame = True
+		self.forced = False
+		self.n = 1
+
+		while (continueGame) and self.d.preset:
+			titleText = "Player " + str(self.n) + "'s Turn"
+			self.d.changeTitleText(titleText)
+			self.d.displayProgress("",0)
+
+			if self.forced:
+				self.d.checkPoint(self.b.otherNumber(self.n))
+
+			self.d.updateBoard(self.b)
+
+			i = 0
+			while i < 10:
+				self.d.displayBoard()
+				pygame.time.wait(10)
+				i += 1 # WHOOOPS FORGOT THIS
+
+			if not self.d.preset:
+				break
+
+			nextMove = players[0].move(self.b, self.n, self.d)
+
+			if not self.d.preset:
+				break
+
+			noProblem = self.b.move(self.n,nextMove)
+
+			if not noProblem:
+				print "move", nextMove, "failed for player", self.n
+				break
+
+			continueGame = self.checkBoard(nextMove)
+
+			self.n = self.b.otherNumber(self.n)
+
 	def playGame(self, players):
 		"""
 		starts game between players 1 and 2
@@ -68,9 +107,14 @@ class Master:
 		self.b = Board()
 		self.d = Display(self.b,self.AIList,players)
 		self.d.initializeBoard()
+
 		continueGame = True
 		self.forced = False
 		self.n = 1
+
+
+		if players[0]:
+			self.presetBoard(players)
 
 		while (continueGame):
 			titleText = "Player " + str(self.n) + "'s Turn"
