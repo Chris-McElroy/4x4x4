@@ -56,6 +56,9 @@ class Display:
 		text = "Welcome to 4x4x4 Tic Tac Toe!"
 		self.changeTitleText(text + "  Please select 2 players below!")
 
+		self.preset = False
+		self.players[0] = None
+
 		buttons = self.createButtons()
 
 		colorSet = [None]

@@ -18,6 +18,7 @@ class Vaapad:
 		self.nMoves = len(self.b.myPoints(self.n))
 		self.decided = False
 		self.assured = False
+		self.scared = False
 		self.d = None
 
 		self.undecided = False
@@ -54,6 +55,17 @@ class Vaapad:
 
 		move = self.weakLookAhead()
 
+		if move == False:
+			print "Chris has been trying to recreate this bug for a while,"
+			print "Please get all this info to him if possible."
+			print "Moves: ", self.b.moveList
+			print "Players: ", self.n, self.o
+			print "Move, assured, decided, scared: ", move, self.assured, self.decided, self.scared
+			print "Board:"
+			newD = Display(self.b,[None],[None])
+			newD.displayShittyBoard()
+			print "Possible moves: ", self.moves
+
 		return move
 
 	def assuredMove(self):
@@ -87,13 +99,9 @@ class Vaapad:
 		# check what to defend
 		self.otherLookAhead()
 
-		if self.decided:
-			print "Not sure what happened here, please let Chris know"
-			print "If you could record the moves that'd be really great"
-			print "here they are: ", self.b.moveList
-
 		# search for a strong move
-		return self.strongLookAhead()
+		if not self.scared:
+			return self.strongLookAhead()
 	
 		return False
 
@@ -349,13 +357,12 @@ class Vaapad:
 			shouldMove = self.shouldStrong(move,forceMoves)
 
 			if shouldMove:
-				if self.shouldStrong(move,forceMoves):
-					badGuy.b.move(badGuy.o,move)
-					# if they don't have any way to block the force, you're great
-					if not badGuy.otherLookAhead(False, 1):
-						moves += [move]
+				badGuy.b.move(badGuy.o,move)
+				# if they don't have any way to block the force, you're great
+				if not badGuy.otherLookAhead(False, 1):
+					moves += [move]
 
-					badGuy.b.clearPoint(move)
+				badGuy.b.clearPoint(move)
 
 			# if (move in moves):
 			# 	if not shouldMove:
@@ -400,8 +407,8 @@ class Vaapad:
 			for m in pair:
 				forceMoves += [m]
 
-		bestScore = self.magicNumber()
-		orig = bestScore
+		bestScore = 0
+		orig = self.magicNumber(0)
 		bestMoves = []
 
 		nMoves = len(self.moves)
@@ -413,15 +420,12 @@ class Vaapad:
 			goodGuy.updateAll(self.b,self.n,self.d)
 			goodGuy.b.move(self.n,self.moves[i])
 
-			score = goodGuy.magicNumber()
+			score = goodGuy.magicNumber(orig)
 
 			if self.moves[i] not in forceMoves:
 				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
 
 				score = score*1.25
-
-
-			# print "totalScore = ", score
 
 			if bestScore < score:
 				bestScore = score
@@ -431,31 +435,34 @@ class Vaapad:
 
 		return self.chooseMove(bestMoves)
 
-	def magicNumber(self):
+	def magicNumber(self,originalScore):
 		"""
 		where the magic numbers come in
 		"""
 
-		ODQ = .1
+		dLS, oLS, dPS, oPS = (0,)*4
 		PLQ = 2
 
-		score = 0
-		linesSet = [[len(self.b.findLines(self.o,num)) for num in range(1,5)]]
-		linesSet += [[len(self.b.findLines(self.n,num)) for num in range(1,5)]]
-		for i in range(2):
-			for num in range(4):
-				score += linesSet[i][num]*(2*i-1+ODQ)
+		dLinesSet = [len(self.b.findLines(self.o,num)) for num in range(1,5)]
+		oLinesSet = [len(self.b.findLines(self.n,num)) for num in range(1,5)]
+		dPlanesSet, oPlanesSet = self.getPlanes(self.n)
 
-		# print "linesScore = ", score
+		for num in range(4):
+			dLS += dLinesSet[num]
+			oLS += oLinesSet[num]
 
-		planesSet = self.getPlanes(self.n)
-		for i in range(2):
-			for num in range(16):
-				score += PLQ*planesSet[i][num]*(2*i-1+ODQ)*(1/2+(num+1)/2)
+		for num in range(16):
+			dPS += dPlanesSet[num]*(1.0/2+(num+1.0)/2)
+			oPS += oPlanesSet[num]*(1.0/2+(num+1.0)/2)
 
-		# print "magicScore = ", score
+		# decide how much to care about other dude based on how much they have
+		ODQ = (1 - dPS/6.0 - dLS/24.0)
+		# print "odq: ", ODQ, "originalScore: ", originalScore
+		# print dLinesSet
+		# print oLinesSet
+		# print dLS, oLS, dPS, oPS
 
-		return score
+		return (dPS*PLQ+dLS)*(-1+ODQ)+(oPS*PLQ+oLS)*(1+ODQ) - originalScore
 
 	def otherLookAhead(self,fullSearch = True,depth=0):
 		""" looks ahead defensively to try to block opponent's forces """
@@ -506,7 +513,6 @@ class Vaapad:
 
 				check = badGuy.fourInARow(badGuy.o)
 				
-
 				if check:
 					badGuy.b.move(badGuy.n,check)
 
@@ -538,8 +544,9 @@ class Vaapad:
 			if workingMoves:
 				self.moves = workingMoves
 
-			else:
+			else: # admit defeat
 				self.moves = possMoves
+				self.scared = True
 				if not fullSearch:
 					return False
 
@@ -554,7 +561,8 @@ class Vaapad:
 		r4 = range(4)
 		planes = []
 		o = self.b.otherNumber(n)
-		sortedPlanes = [[0 for i in range(16)] for j in range(2)]
+		otherPlanes = [0 for i in range(16)]
+		myPlanes = [0 for i in range(16)]
 
 		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
 		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
@@ -574,12 +582,12 @@ class Vaapad:
 			osN = plane.count(o)
 			if not myN:
 				if osN:
-					sortedPlanes[0][osN] += 1
+					otherPlanes[osN-1] += 1
 			if not osN:
 				if myN:
-					sortedPlanes[1][myN] += 1
+					myPlanes[myN-1] += 1
 
-		return sortedPlanes
+		return otherPlanes, myPlanes
 
 	# updating functions
 	def updateForPoint(self, p):
@@ -600,6 +608,7 @@ class Vaapad:
 		self.nMoves = len(self.b.myPoints(self.n))
 		self.decided = False
 		self.assured = False
+		self.scared = False
 
 	def updateWinsForPoint(self, pair, myNum):
 		"""
