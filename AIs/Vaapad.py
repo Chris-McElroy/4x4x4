@@ -408,67 +408,129 @@ class Vaapad:
 				forceMoves += [m]
 
 		bestScore = 0
-		orig = self.magicNumber(0)
+		orig = self.webMagicNumber(0,None)
 		bestMoves = []
 
+		i = 0
 		nMoves = len(self.moves)
 
-		for i in range(nMoves):
+		for move in self.moves:
 			self.d.displayProgress("Finding Optimal Move: ",100.0*i/nMoves)
 
 			goodGuy = Vaapad()
 			goodGuy.updateAll(self.b,self.n,self.d)
-			goodGuy.b.move(self.n,self.moves[i])
+			goodGuy.b.move(self.n,move)
 
-			score = goodGuy.magicNumber(orig)
+			score = goodGuy.webMagicNumber(orig, move)
 
-			if self.moves[i] not in forceMoves:
+			if move not in forceMoves:
 				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
+				if not (finished and not goodGuy.assured):
+					score = score*1.25
 
-				score = score*1.25
+			# print score, move, ff, bestScore, "*" if score == bestScore else ""
 
 			if bestScore < score:
 				bestScore = score
-				bestMoves = [self.moves[i]]
+				bestMoves = [move]
 			elif bestScore == score:
-				bestMoves += [self.moves[i]]
+				bestMoves += [move]
+
+			i += 1
 
 		return self.chooseMove(bestMoves)
 
-	def magicNumber(self,originalScore):
+	def webMagicNumber(self,originalScore, move):
 		"""
-		where the magic numbers come in
+		a new magic number theory
 		"""
+		score, myScore, osScore = (0,)*3
+		PLQ = 4
 
-		dLS, oLS, dPS, oPS = (0,)*4
-		PLQ = 2
+		myPoints, osPoints = self.checkPoints()
+		myPlanes, osPlanes = self.checkPlanes()		
 
-		dLinesSet = [len(self.b.findLines(self.o,num)) for num in range(1,5)]
-		oLinesSet = [len(self.b.findLines(self.n,num)) for num in range(1,5)]
-		dPlanesSet, oPlanesSet = self.getPlanes(self.n)
+		myScore += myPoints
+		osScore += osPoints
 
-		for num in range(4):
-			dLS += dLinesSet[num]
-			oLS += oLinesSet[num]
+		myScore += myPlanes*PLQ
+		osScore += osPlanes*PLQ
 
-		for num in range(16):
-			dPS += dPlanesSet[num]*(1.0/2+(num+1.0)/2)
-			oPS += oPlanesSet[num]*(1.0/2+(num+1.0)/2)
+		ODQ = (1-osScore/40.0)/2.0
 
-		# decide how much to care about other dude based on how much they have
-		ODQ = (1 - dPS/6.0 - dLS/24.0)
-		# print "odq: ", ODQ, "originalScore: ", originalScore
-		# print dLinesSet
-		# print oLinesSet
-		# print dLS, oLS, dPS, oPS
+		score = myScore*(1+ODQ) + osScore*(-1+ODQ)
 
-		return (dPS*PLQ+dLS)*(-1+ODQ)+(oPS*PLQ+oLS)*(1+ODQ) - originalScore
+		# print move, myScore, osScore, myPoints, osPoints, myPlanes, osPlanes, score
+
+		return score - originalScore
+
+	def checkPoints(self):
+		""" checks points magically """
+		r4 = range(4)
+		myPoints, osPoints = (0,)*2
+		allPoints = [(i,j,k) for i in r4 for j in r4 for k in r4]
+
+		for p in allPoints:
+			myL, osL = (0,)*2
+			for num in [1,2,3]:
+				myL += len(self.b.openLinesForPoint(self.n,p,num))
+				osL += len(self.b.openLinesForPoint(self.o,p,num))
+
+			pointValue = 1.75 if self.good(p) else 1
+
+			if myL > osL:
+				myPoints += pointValue*(myL-osL)
+			elif osL > myL:
+				osPoints += pointValue*(osL-myL)
+
+		return myPoints, osPoints
+
+	def checkPlanes(self):
+		""" checks planes magically """
+		r4 = range(4)
+		planes = []
+		myPlanes, osPlanes = (0,)*2
+
+		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((j,k,i)) for i in r4 for j in r4] for k in r4]
+
+		planes += [[self.b.pointToValue((i,i,j)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((3-i,i,j)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((j,i,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((j,3-i,i)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((i,j,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((i,j,3-i)) for i in r4 for j in r4]]
+
+		for plane in planes:
+			myN = plane.count(self.n)
+			osN = plane.count(self.o)
+			if myN and not osN:
+				myPlanes += 1
+			elif osN and not myN:
+				osPlanes += 1
+
+		return myPlanes, osPlanes
+
+	def good(self,p):
+		""" returns true if the point is good """
+		# add corners
+		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
+				 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
+		return p in goodP
+
+	def good2(self,p):
+		""" returns true if the point is good """
+		# add corners
+		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3)]
+		return p in goodP
 
 	def otherLookAhead(self,fullSearch = True,depth=0):
 		""" looks ahead defensively to try to block opponent's forces """
-
-		if depth == 3:
-			return False
+		if depth > 0 and fullSearch:
+			print "You've created a problem"
 
 		badGuy = Vaapad()
 		badGuy.updateAll(self.b,self.o,self.d)
@@ -480,6 +542,9 @@ class Vaapad:
 		test = badGuy.findShatterpoint(32, disp, depth)
 
 		if badGuy.assured:
+			if depth == 3:
+				return False
+
 			for pair in badGuy.forcingCombo:
 				for move in pair:
 					if move not in possMoves:
@@ -552,42 +617,6 @@ class Vaapad:
 
 		elif not fullSearch:
 			return True
-
-	def getPlanes(self,n):
-		"""
-		returns a list of the number of planes that player has,
-		sorted by the number of points that player has unblocked on the plane
-		"""
-		r4 = range(4)
-		planes = []
-		o = self.b.otherNumber(n)
-		otherPlanes = [0 for i in range(16)]
-		myPlanes = [0 for i in range(16)]
-
-		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
-		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
-		planes += [[self.b.pointToValue((j,k,i)) for i in r4 for j in r4] for k in r4]
-
-		planes += [[self.b.pointToValue((i,i,j)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((3-i,i,j)) for i in r4 for j in r4]]
-
-		planes += [[self.b.pointToValue((j,i,i)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((j,3-i,i)) for i in r4 for j in r4]]
-
-		planes += [[self.b.pointToValue((i,j,i)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((i,j,3-i)) for i in r4 for j in r4]]
-
-		for plane in planes:
-			myN = plane.count(n)
-			osN = plane.count(o)
-			if not myN:
-				if osN:
-					otherPlanes[osN-1] += 1
-			if not osN:
-				if myN:
-					myPlanes[myN-1] += 1
-
-		return otherPlanes, myPlanes
 
 	# updating functions
 	def updateForPoint(self, p):
