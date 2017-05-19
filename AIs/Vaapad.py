@@ -51,20 +51,20 @@ class Vaapad:
 		# check for four in a row on both sides
 		move = self.assuredMove()
 		if self.decided:
+			if move == False:
+				print "Chris has been trying to recreate this bug for a while,"
+				print "Please get all this info to him if possible."
+				print "Moves: ", self.b.moveList
+				print "Players: ", self.n, self.o
+				print "Move, assured, decided, scared: ", move, self.assured, self.decided, self.scared
+				print "Board:"
+				newD = Display(self.b,[None],[None])
+				newD.displayShittyBoard()
+				print "Possible moves: ", self.moves
+
 			return move
 
 		move = self.weakLookAhead()
-
-		if move == False:
-			print "Chris has been trying to recreate this bug for a while,"
-			print "Please get all this info to him if possible."
-			print "Moves: ", self.b.moveList
-			print "Players: ", self.n, self.o
-			print "Move, assured, decided, scared: ", move, self.assured, self.decided, self.scared
-			print "Board:"
-			newD = Display(self.b,[None],[None])
-			newD.displayShittyBoard()
-			print "Possible moves: ", self.moves
 
 		return move
 
@@ -101,8 +101,10 @@ class Vaapad:
 
 		# search for a strong move
 		if not self.scared:
-			return self.strongLookAhead()
-	
+			strongMove = self.strongLookAhead()
+			if self.assured:
+				return strongMove
+				
 		return False
 
 	# specialized checking functions
@@ -398,135 +400,6 @@ class Vaapad:
 
 		return True
 
-	def weakLookAhead(self):
-		""" looks ahead, tries to set up a decent force """
-
-		forceMoves = []
-		pairs = self.b.findForces(self.n)
-		for pair in pairs:
-			for m in pair:
-				forceMoves += [m]
-
-		bestScore = 0
-		orig = self.webMagicNumber(0,None)
-		bestMoves = []
-
-		i = 0
-		nMoves = len(self.moves)
-
-		for move in self.moves:
-			self.d.displayProgress("Finding Optimal Move: ",100.0*i/nMoves)
-
-			goodGuy = Vaapad()
-			goodGuy.updateAll(self.b,self.n,self.d)
-			goodGuy.b.move(self.n,move)
-
-			score = goodGuy.webMagicNumber(orig, move)
-
-			if move not in forceMoves:
-				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
-				if not (finished and not goodGuy.assured):
-					score = score*1.25
-
-			# print score, move, ff, bestScore, "*" if score == bestScore else ""
-
-			if bestScore < score:
-				bestScore = score
-				bestMoves = [move]
-			elif bestScore == score:
-				bestMoves += [move]
-
-			i += 1
-
-		return self.chooseMove(bestMoves)
-
-	def webMagicNumber(self,originalScore, move):
-		"""
-		a new magic number theory
-		"""
-		score, myScore, osScore = (0,)*3
-		PLQ = 4
-
-		myPoints, osPoints = self.checkPoints()
-		myPlanes, osPlanes = self.checkPlanes()		
-
-		myScore += myPoints
-		osScore += osPoints
-
-		myScore += myPlanes*PLQ
-		osScore += osPlanes*PLQ
-
-		ODQ = (1-osScore/40.0)/2.0
-
-		score = myScore*(1+ODQ) + osScore*(-1+ODQ)
-
-		# print move, myScore, osScore, myPoints, osPoints, myPlanes, osPlanes, score
-
-		return score - originalScore
-
-	def checkPoints(self):
-		""" checks points magically """
-		r4 = range(4)
-		myPoints, osPoints = (0,)*2
-		allPoints = [(i,j,k) for i in r4 for j in r4 for k in r4]
-
-		for p in allPoints:
-			myL, osL = (0,)*2
-			for num in [1,2,3]:
-				myL += len(self.b.openLinesForPoint(self.n,p,num))
-				osL += len(self.b.openLinesForPoint(self.o,p,num))
-
-			pointValue = 1.75 if self.good(p) else 1
-
-			if myL > osL:
-				myPoints += pointValue*(myL-osL)
-			elif osL > myL:
-				osPoints += pointValue*(osL-myL)
-
-		return myPoints, osPoints
-
-	def checkPlanes(self):
-		""" checks planes magically """
-		r4 = range(4)
-		planes = []
-		myPlanes, osPlanes = (0,)*2
-
-		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
-		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
-		planes += [[self.b.pointToValue((j,k,i)) for i in r4 for j in r4] for k in r4]
-
-		planes += [[self.b.pointToValue((i,i,j)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((3-i,i,j)) for i in r4 for j in r4]]
-
-		planes += [[self.b.pointToValue((j,i,i)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((j,3-i,i)) for i in r4 for j in r4]]
-
-		planes += [[self.b.pointToValue((i,j,i)) for i in r4 for j in r4]]
-		planes += [[self.b.pointToValue((i,j,3-i)) for i in r4 for j in r4]]
-
-		for plane in planes:
-			myN = plane.count(self.n)
-			osN = plane.count(self.o)
-			if myN and not osN:
-				myPlanes += 1
-			elif osN and not myN:
-				osPlanes += 1
-
-		return myPlanes, osPlanes
-
-	def good(self,p):
-		""" returns true if the point is good """
-		# add corners
-		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
-				 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
-		return p in goodP
-
-	def good2(self,p):
-		""" returns true if the point is good """
-		# add corners
-		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3)]
-		return p in goodP
-
 	def otherLookAhead(self,fullSearch = True,depth=0):
 		""" looks ahead defensively to try to block opponent's forces """
 		if depth > 0 and fullSearch:
@@ -607,7 +480,7 @@ class Vaapad:
 				i += 1
 
 			if workingMoves:
-				self.moves = workingMoves
+				self.moves = possMoves
 
 			else: # admit defeat
 				self.moves = possMoves
@@ -615,10 +488,167 @@ class Vaapad:
 				if not fullSearch:
 					return False
 
-		elif not fullSearch:
-			return True
+		else:
+			if not fullSearch:
+				return True
 
-	# updating functions
+	def weakLookAhead(self):
+		""" looks ahead, tries to set up a decent force """
+
+		forceMoves = []
+		pairs = self.b.findForces(self.n)
+		for pair in pairs:
+			for m in pair:
+				forceMoves += [m]
+
+		bestScore = 0
+		bestMoves = set()
+		orig = self.webMagicNumber(0,None)
+
+		i = 0
+		nMoves = len(self.moves)
+
+		for move in self.moves:
+			self.d.displayProgress("Finding Optimal Move: ",100.0*i/nMoves)
+
+			goodGuy = Vaapad()
+			goodGuy.updateAll(self.b,self.n,self.d)
+			goodGuy.b.move(self.n,move)
+
+			score = goodGuy.webMagicNumber(orig, move)
+
+			if move not in forceMoves:
+				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
+				if not (finished and not goodGuy.assured):
+					score = score*1.25
+
+			if score > bestScore:
+				bestScore = score
+				bestMoves = set()
+			if score == bestScore:
+				bestMoves.add(move)
+
+			i += 1
+
+		return self.chooseMove(list(bestMoves))
+
+	# updating/boardy functions
+	def goodMagicNumber(self, originalScore, move):
+		"""
+		finds all the good shit
+		"""
+		goodLines = [0,3,5,6,9,10,12,15,16,19,21,22,25,26,28,31,32,35,37,38,41,42,44,47]
+		goodLines += range(48,76)
+
+		mainDiags = range(72,76)
+
+		myPoints = self.b.myPoints(self.n)
+		osPoints = self.b.myPoints(self.o)
+
+		myLines = 0
+		osLines = 0
+
+		for point in myPoints:
+			lines = self.myLines(point,self.n)
+			for l in lines:
+				if l in goodLines:
+					myLines += 1
+				if l in mainDiags:
+					myLines += 1
+		for point in osPoints:
+			lines = self.myLines(point,self.o)
+			for l in lines:
+				if l in goodLines:
+					osLines += 1
+				if l in mainDiags:
+					osLines += 1
+
+		# print move, myLines, osLines
+			
+	def webMagicNumber(self, originalScore, move):
+		"""
+		a new magic number theory
+		"""
+
+		myPoints, osPoints = self.checkPoints()
+		myPlanes, osPlanes = self.checkPlanes()		
+
+		ODQ = (1-osPlanes/2.5)/2.0
+
+		score = myPoints*(1+ODQ) + osPoints*(-1+ODQ)
+
+		return score - originalScore
+
+	def checkPoints(self):
+		""" checks points magically """
+
+		myPoints, osPoints = (0,)*2
+
+		allPoints = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
+					 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
+
+		for p in allPoints:
+			myL = len(self.myLines(p,self.n))
+			osL = len(self.myLines(p,self.o))
+
+			if myL > osL:
+				myPoints += myL-osL
+			elif osL > myL:
+				osPoints += osL-myL
+
+		return myPoints, osPoints
+
+	def checkPlanes(self):
+		""" checks planes magically """
+		r4 = range(4)
+		planes = []
+		myPlanes, osPlanes = (0,)*2
+
+		planes += [[self.b.pointToValue((i,j,k)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((k,i,j)) for i in r4 for j in r4] for k in r4]
+		planes += [[self.b.pointToValue((j,k,i)) for i in r4 for j in r4] for k in r4]
+
+		planes += [[self.b.pointToValue((i,i,j)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((3-i,i,j)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((j,i,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((j,3-i,i)) for i in r4 for j in r4]]
+
+		planes += [[self.b.pointToValue((i,j,i)) for i in r4 for j in r4]]
+		planes += [[self.b.pointToValue((i,j,3-i)) for i in r4 for j in r4]]
+
+		for plane in planes:
+			myN = plane.count(self.n)
+			osN = plane.count(self.o)
+			if myN and not osN:
+				myPlanes += 1
+			elif osN and not myN:
+				osPlanes += 1
+
+		return myPlanes, osPlanes
+
+	def good(self,p):
+		""" returns true if the point is good """
+		# add corners
+		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
+				 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
+		return p in goodP
+
+	def good2(self,p):
+		""" returns true if the point is good """
+		# add corners
+		goodP = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3)]
+		return p in goodP
+
+	def myLines(self,p,n):
+		""" gets all the open lines for the point for num > 0 """
+
+		lines = []
+		for num in range(1,4):
+			lines += self.b.openLinesForPoint(n,p,num)
+
+		return lines
+
 	def updateForPoint(self, p):
 		"""
 		Updates pairs, moves, and lines after point p has been filled

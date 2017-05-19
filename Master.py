@@ -73,11 +73,9 @@ class Master:
 
 			self.d.updateBoard(self.b)
 
-			i = 0
-			while i < 10:
+			for i in range(10):
 				self.d.displayBoard()
 				pygame.time.wait(10)
-				i += 1 # WHOOOPS FORGOT THIS
 
 			if not self.d.preset:
 				break

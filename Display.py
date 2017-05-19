@@ -180,7 +180,9 @@ class Display:
 		glTranslatef(0.0,0, -200)
 		glRotatef(20,0.3,0.5,0.04)
 
-		self.displayBoard()
+		for i in range(2):
+			self.displayBoard()
+			pygame.time.wait(2)
 
 	def updateBoard(self,board):
 		""" updates board """
@@ -522,18 +524,8 @@ class Display:
 
 		pygame.display.set_caption(self.titleText+self.progressText[0])
 
-		if self.preset:
-			glClearColor(.4,.4,.4,.4)
-
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-
 		self.checkInputs()
-
-		self.displayPieces()
-
 		pygame.display.flip()
-
-		glClearColor(0,0,0,0)
 
 	def displayProgress(self,string,percent):
 		""" displays the progress bar and a short description """
