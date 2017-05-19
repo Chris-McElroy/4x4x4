@@ -1,7 +1,6 @@
 from Board import *
 from Display import *
 from AIs.Vaapad import *
-from AIs.weakVaapad import *
 from AIs.Wildfire import *
 from AIs.Human import *
 from AIs.Brute import *
