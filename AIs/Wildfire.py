@@ -1,4 +1,3 @@
-import time
 import random
 from Board import *
 
@@ -7,7 +6,7 @@ class Wildfire:
 
 	def __init__(self):
 		""" Stores player info for easy access """
-		self.MAX_FORCES = 9
+		self.MAX_FORCES = 7
 		self.forceCache = set()
 		self.step = ""
 
@@ -17,52 +16,107 @@ class Wildfire:
 		"""
 
 		# obvious - if you can win, do it. If you can't and they can, block it.
+
 		if self.winningMove(board, n):
 			return self.winningMove(board, n)
 		if self.winningMove(board, board.otherNumber(n)):
 			return self.winningMove(board, board.otherNumber(n))
 
-		self.step  = "Finding offensive Forces: "
-		# if we have a winning sequence of forces, take it
-		winningForces = self.forceCheck(board, n, self.MAX_FORCES, d)
+		self.step  = "Finding Offensive Forces: "
+		winningForces = self.findForces(board, n, self.MAX_FORCES, d)
 		if winningForces:
 			print "Found", len(winningForces), "winning forces"
 			return winningForces[0][0]
 
 
-		self.step  = "Finding defensive Moves: "
-		# if we will have a losing sequence of forces, we need to take action against it.
-		otherForces = self.forceCheck(board, board.otherNumber(n), self.MAX_FORCES, d)
-		# currently just do shittiest possible block
-
-		possibleMoves = board.openPoints()
-
+		self.step  = "Finding Opponent's Forces: "
+		otherForces = self.findForces(board, board.otherNumber(n), self.MAX_FORCES, d)
+		
+		possibleMoves = [p for p in board.openPoints() if p not in self.findCasualChecks(board, n)]
 		if otherForces:
-			print "Defending against", len(otherForces), "forces"
+			self.step = "Analyzing Defensive Moves: "
+			possibleMoves = self.findDefensiveMoves(board, n, otherForces, d)
+		
+		if not possibleMoves:
+			self.setp = "Deciding Casual Checks"
+			###### TODO: Better casual check analysis than 'pick one'
+			possibleMoves = self.findCasualChecks(board, n)
 
-			# # testBoard = Board()
-			# totalDefensiveMoves = []
-			# for force in otherForces:
-			# 	defensiveMoves = []
-			# 	# testBoard.copyAll(board)
-			# 	for i in range(len(force)):
-			# 		if i%2 == 0:
-			# 			# testBoard.move(board.otherNumber(n), force[i])
-			# 			defensiveMoves.append(force[i])
-			# 		# else:
-			# 		# 	testBoard.move(n, force[i])
-			# 	totalDefensiveMoves.append(defensiveMoves)
+		self.step = "Choosing From Acceptable Moves: "
+		return self.pickMove(board, n, possibleMoves, d)
 
-			defensiveMoves = [p for p in possibleMoves if self.isDefensive(p, otherForces)]
+	def winningMove(self, board, n):
+		""" Checks if there is a winning move for player n and if there is, returns it"""
+		forces = board.findLines(n, 3).copy()
+		if len(forces) > 0:
+			for point in board.lineToPoints(next(iter(forces))):
+				if board.pointToValue(point) == 0:
+					return point
 
-			if defensiveMoves:
-				possibleMoves = bestDefensiveMoves
-			else:
-				print "Failed to find possible defensive move. #rip"
+	def findCasualChecks(self, board, n):
+		checks = []
 
+		possibleForces =  board.findLines(n, 2)
+		for force in possibleForces:
+			openSpots = filter(lambda p: board.pointToValue(p) == 0, board.lineToPoints(force))
+			checks += openSpots
 
-		self.step = "Main Loop: "
-		bestScore = -999
+		return checks
+	
+	def findForces(self, board, n, movesLeft, d):
+		""" Wrapper function for findForcesrec"""
+		self.forceCache.clear()
+		return self.findForcesRec(board, n, movesLeft, d)
+
+	def findForcesRec(self, board, n, movesLeft, d):
+		""" Recursively finds all possible forcing sequences with {movesleft} moves
+			for player n up to reordering and returns them"""
+
+		if board.hash() in self.forceCache:
+			# we've already visited this, no need to do so again
+			return False
+
+		if self.winningMove(board, n):
+			self.forceCache.add(board.hash())
+			# this looks weird, but we're returning a list of possible lists of moves
+			return [[self.winningMove(board, n)]]
+
+		if self.winningMove(board, board.otherNumber(n)) or movesLeft == 0:
+			self.forceCache.add(board.hash())
+			return False
+
+		possibleForces =  board.findLines(n, 2)
+		wins = []
+		i = 0
+
+		for force in possibleForces:
+
+			openSpots = filter(lambda p: board.pointToValue(p) == 0, board.lineToPoints(force))
+			openSpotsRev = [openSpots[1], openSpots[0]]
+
+			for moves in [openSpots, openSpotsRev]:
+
+				if movesLeft == self.MAX_FORCES:
+					d.displayProgress(self.step, (100*i)/(2*len(possibleForces)))
+					i+= 1
+
+				board.move(n, moves[0])
+				board.move(board.otherNumber(n), moves[1])
+
+				winsRec = self.findForcesRec(board, n, movesLeft-1, d)
+				board.clearPoint(moves[0])
+				board.clearPoint(moves[1])
+
+				if winsRec:
+					self.forceCache.add(board.hash())
+					wins += [moves + recMoves for recMoves in winsRec]
+			
+		return wins
+
+	def pickMove(self, board, n, possibleMoves, d):
+		""" uses the heuristic in evaluateMove to choose the best move
+		from possibleMoves. if there are multiple, it chooses randomly"""
+		bestScore = -float('inf')
 		bestMoves = []
 		i = 0
 		for point in possibleMoves:
@@ -81,79 +135,6 @@ class Wildfire:
 
 		return random.choice(bestMoves)
 
-
-	def winningMove(self, board, n):
-		""" Checks if there is a winning move for player n and if there is, returns it"""
-		forces = board.findLines(n, 3).copy()
-		if len(forces) > 0:
-			for point in board.lineToPoints(next(iter(forces))):
-				if board.pointToValue(point) == 0:
-					return point
-	
-	def forceCheck(self, board, n, movesLeft, d):
-		""" Wrapper function for forcecheckrec"""
-		self.forceCache.clear()
-		return self.forceCheckRec(board, n, movesLeft, d)
-
-	def forceCheckRec(self, board, n, movesLeft, d):
-		""" Recursively finds all possible forcing sequences with {movesleft} moves
-			for player n up to reordering and returns them"""
-
-		if board.hash() in self.forceCache:
-			# we've already visited this, no need to do so again
-			return False
-
-		if self.winningMove(board, n):
-			self.forceCache.add(board.hash())
-			# this looks weird, but we're returning a list of
-			# possible lists of moves
-			return [[self.winningMove(board, n)]]
-
-		if self.winningMove(board, board.otherNumber(n)) or movesLeft == 0:
-			self.forceCache.add(board.hash())
-			return False
-
-		possibleForces =  board.findLines(n, 2)
-
-		wins = []
-
-		i = 0
-		for force in possibleForces:
-
-			if movesLeft == self.MAX_FORCES:
-				d.displayProgress(self.step, (100*i)/(len(possibleForces)))
-				i+= 1
-
-			openSpots = filter(lambda p: board.pointToValue(p) == 0, board.lineToPoints(force))
-
-			board.move(n, openSpots[0])
-			board.move(board.otherNumber(n), openSpots[1])
-
-			wins1 = self.forceCheckRec(board, n, movesLeft-1, d)
-			board.clearPoint(openSpots[0])
-			board.clearPoint(openSpots[1])
-
-			# we don't have getters or setters because this is sus
-			# kids, don't do this at home
-
-			if wins1:
-				self.forceCache.add(board.hash())
-				wins += [openSpots + moves for moves in wins1]
-			
-			board.move(n, openSpots[1])
-			board.move(board.otherNumber(n), openSpots[0])
-
-			wins2 = self.forceCheckRec(board, n, movesLeft-1, d)
-			board.clearPoint(openSpots[0])
-			board.clearPoint(openSpots[1])
-
-			if wins2:
-				self.forceCache.add(board.hash())
-				openSpots.reverse()
-				wins += [openSpots + moves for moves in wins2]
-
-		return wins
-
 	def evaluatePosition(self, board, n):
 		""" Evaluates a certain board position based on a series of heuristics"""
 		score = 0
@@ -163,6 +144,30 @@ class Wildfire:
 		score -= len(board.findLines(board.otherNumber(n),2))
 
 		return score
+
+	def findDefensiveMoves(self, board, n, otherForces, d):
+		""" Finds moves that block all forces in otherForces"""
+
+		startingChecks = self.findCasualChecks(board, n)
+		testBoard = Board()
+		for i in range(len(otherForces)):
+			d.displayProgress(self.step, (100*i)/len(otherForces))
+
+			force = otherForces[i]
+			testBoard.copyAll(board)
+			for j in range(len(force)):
+				if j%2 == 0:
+					testBoard.move(board.otherNumber(n), force[j])
+				else:
+					testBoard.move(n, force[j])
+
+			defensiveChecks = self.findCasualChecks(testBoard, n)
+			otherForces[i] += [check for check in defensiveChecks if check not in startingChecks]
+
+
+		defensiveMoves = [p for p in board.openPoints() if self.isDefensive(p, otherForces)]
+
+		return defensiveMoves
 
 	def isDefensive(self, p, totalDefensiveMoves):
 		""" returns whether p is a defensive move for all possible opponent's forces"""
