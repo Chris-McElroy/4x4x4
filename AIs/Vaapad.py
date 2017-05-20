@@ -104,7 +104,7 @@ class Vaapad:
 			strongMove = self.strongLookAhead()
 			if self.assured:
 				return strongMove
-				
+
 		return False
 
 	# specialized checking functions
@@ -173,7 +173,7 @@ class Vaapad:
 
 		while (not combos) and openCombos and ply <= limit:
 			total = len(openCombos)
-			oldPercent = -1
+			oldPercent = -100
 
 			nextOC = []
 			ocSet = set()
@@ -480,7 +480,7 @@ class Vaapad:
 				i += 1
 
 			if workingMoves:
-				self.moves = possMoves
+				self.moves = workingMoves
 
 			else: # admit defeat
 				self.moves = possMoves
