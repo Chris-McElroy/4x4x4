@@ -439,7 +439,7 @@ class Vaapad:
 			if shouldMove:
 				badGuy.b.move(badGuy.o,move)
 				# if they don't have any way to block the force, you're great
-				if not badGuy.otherLookAhead([i,1,2,numMoves,totalM]):
+				if not badGuy.otherLookAhead([percent,1,2,numMoves,i,totalM]):
 					moves += [move]
 					numMoves += 1
 
@@ -507,7 +507,7 @@ class Vaapad:
 					display[0] = 100.0*i/(len(possMoves)+i)
 					display[3] = len(workingMoves)
 				if display[2] == 2 and display[1] == 2:
-					display[0] = (100.0/display[4])*(display[0]+1.0*i/(len(possMoves)+i))
+					display[0] = (100.0/display[5])*(display[4]+1.0*i/(len(possMoves)+i))
 
 				self.updateText(display[0],display[1],0,display[2], display[3])
 
