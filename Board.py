@@ -1,3 +1,5 @@
+import copy
+
 class Board:
     """
     Provides the 4x4x4 board for the game, holds all moves,

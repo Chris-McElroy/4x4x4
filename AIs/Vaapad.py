@@ -26,6 +26,8 @@ class Vaapad:
 		self.comboLen = False
 		self.ply = 4
 
+		self.lastPrintTime = -1000
+
 	def chooseMove(self,moves):
 		"""
 		chooses a move from the available one in the determined tiebreaking way
@@ -42,22 +44,26 @@ class Vaapad:
 
 	def updateText(self,percent, depth, ply, textN, numMoves):
 		""" updates the display text based on the inputs """
-		possText = ["Shatterpoint", "Possible Move", "Unbeatable Move", "Optimal Move"]
 
-		text = "(" + str(depth) + "-deep, " + str(ply) + "-ply) "
-		text += "Finding " if numMoves == 0 else "Found " + str(numMoves) + " "
-		text += possText[textN]
-		text += ": " if numMoves <= 1 else "s: "
+		currentTime = pygame.time.get_ticks()
+		if currentTime - self.lastPrintTime > 100:
+			possText = ["Shatterpoint", "Possible Move", "Unbeatable Move", "Optimal Move"]
 
-		self.d.displayProgress(text, percent)
+			text = "(" + str(depth) + "-deep, " + str(ply) + "-ply) "
+			text += "Finding " if numMoves == 0 else "Found " + str(numMoves) + " "
+			text += possText[textN]
+			text += ": " if numMoves <= 1 else "s: "
+
+			self.d.displayProgress(text, percent)
+			self.lastPrintTime = currentTime
 
 	# high level move functions
-	def move(self,board,n, display):
+	def move(self,board,n, newDisplay):
 		"""
 		The main function for this class.  Returns the point the AI wants to move in.
 		"""
 
-		self.updateAll(board,n,display)
+		self.updateAll(board,n,newDisplay,-1000)
 
 		# check for four in a row on both sides
 		move = self.assuredMove()
@@ -100,7 +106,7 @@ class Vaapad:
 			return move
 
 		# search for a new force
-		move = self.findShatterpoint()
+		move = self.findShatterpoint([0,0,0,0])
 		if self.assured:
 			self.comboLen = len(self.forcingCombo)
 			self.d.displayProgress("Forced Shatterpoint: ", 100.0/self.comboLen)
@@ -108,7 +114,7 @@ class Vaapad:
 			return move
 
 		# check what to defend
-		self.otherLookAhead()
+		self.otherLookAhead([0,0,1,0])
 
 		# search for a strong move
 		if not self.scared:
@@ -169,7 +175,7 @@ class Vaapad:
 					moves += [p]
 		return self.chooseMove(winningMoves)
 
-	def findShatterpoint(self, limit = 32, display = 1, depth = 0):
+	def findShatterpoint(self, display, limit = 32):
 		"""
 		Forces the other player until there are no forces left, or someone wins
 		Returns the point used successfully if player n wins,
@@ -189,16 +195,11 @@ class Vaapad:
 			nextOC = []
 			ocSet = set()
 
-			if type(display) == list and ply > 3:
-				self.displayForce(0,ply,display, depth)
-
 			for i in range(total):
-
-				percent = 100.0*i/total
-				if type(display) == int:
-					if percent >= oldPercent + 3 and self.nMoves > 2:
-						self.displayForce(percent,ply,display, depth)
-						oldPercent = percent
+				if not display[2]:
+					display[0] = 100*i/total
+					display[3] = len(combos)
+				self.updateText(display[0],display[1],ply,display[2],display[3])
 
 				tryForce, ocSet = self.shouldForce(openCombos,i,ocSet)
 				if tryForce:
@@ -213,7 +214,7 @@ class Vaapad:
 						nextOC += [openCombos[i] + newOC[c]]
 					for c in range(len(newC)):
 						combos += [openCombos[i] + newC[c]]
-						if display != 1:
+						if display[2]:
 							self.b = Board()
 							self.b.copyAll(oldBoard)
 							self.forcingCombo = openCombos[i]+newC[c]
@@ -225,8 +226,7 @@ class Vaapad:
 			openCombos = nextOC
 			ply += 1
 
-		if display != 1 and combos:
-			self.forcingCombo = combos[0]
+		if display[2] and combos:
 			return ply
 
 		if combos:
@@ -234,10 +234,11 @@ class Vaapad:
 			self.forcingCombo = combo
 			return combo[0][0]
 
-		if display != 1 and openCombos and ply > limit:
+		if display[2] and openCombos and ply > limit:
 			return False
-		if display != 1 and not openCombos:
+		if display[2] and not openCombos:
 			return ply
+
 		return False
 
 	def shouldForce(self,openCombos,i, ocSet):
@@ -291,7 +292,6 @@ class Vaapad:
 
 		return combos, openCombos
 
-
 	def forceCheck(self,pairs,lenPairs):
 		""" sees if it can pull anti-force combo """
 
@@ -324,7 +324,7 @@ class Vaapad:
 
 		return allowedPairs, allowedIndex
 
-	def findCombos(self, limit = 32, display = 1, depth = 0):
+	def findCombos(self, display, limit = 32):
 		"""
 		finds shatterpoint but returns all the forces in the top used ply,
 		if there is one
@@ -338,21 +338,11 @@ class Vaapad:
 
 		while (not combos) and openCombos and ply <= limit:
 			total = len(openCombos)
-			oldPercent = -100
-
 			nextOC = []
 			ocSet = set()
 
-			if type(display) == list and ply > 3:
-				self.displayForce(0,ply,display, depth)
-
 			for i in range(total):
-
-				percent = 100.0*i/total
-				if type(display) == int:
-					if percent >= oldPercent + 3 and self.nMoves > 2:
-						self.displayForce(percent,ply,display, depth)
-						oldPercent = percent
+				self.updateText(display[0],display[1],ply,display[2],display[3])
 
 				tryForce, ocSet = self.shouldForce(openCombos,i,ocSet)
 				if tryForce:
@@ -413,36 +403,14 @@ class Vaapad:
 
 		return combos, openCombos, forceList
 
-	def displayForce(self,percent,ply,display, depth):
-		""" displays progress text for forcing """
-		text = ""
-		if depth:
-			text += "(" + str(depth) + "-deep) "
-
-		if type(display) == list:
-			text += display[0] + str(ply) + "-ply): "
-			percent = 100.0*display[1]/display[2]
-			self.d.displayProgress(text, percent)
-
-		elif display:
-			if self.assured:
-				text +=  "Successful "+str(ply)+"-ply Search: "
-			elif display == 1:
-				text += "Offensive "+str(ply)+"-ply Search: "
-			elif display == 2:
-				text += "Defensive "+str(ply)+"-ply Search: "
-			
-			self.d.displayProgress(text, percent)
-
 	# brute force checking functions
 	def strongLookAhead(self):
 		"""
 		Looks ahead for undefeatable moves
 		"""
-
 		moves = []
-		i = 0
-		totalM = len(self.moves)
+		numMoves = 0
+		possMoves = []
 
 		forceMoves = []
 		pairs = self.b.findForces(self.n)
@@ -451,21 +419,29 @@ class Vaapad:
 				forceMoves += [m]
 
 		badGuy = Vaapad()
-		badGuy.updateAll(self.b,self.o,self.d)
+		badGuy.updateAll(self.b,self.o,self.d,self.lastPrintTime)
 
 		for move in self.moves:
-			text = "Strong Look-Ahead: "
-			if moves:
-				text = "Successful Look-Ahead: "
-			self.d.displayProgress(text, 100.0*i/totalM)
+			shouldMove = self.shouldStrong(move,forceMoves)
+
+			if shouldMove:
+				possMoves += [move]
+
+		i = 0
+		totalM = len(possMoves)
+
+		for move in possMoves:
+			percent = 100.0*i/totalM
+			self.updateText(percent,0,0,2,numMoves)
 
 			shouldMove = self.shouldStrong(move,forceMoves)
 
 			if shouldMove:
 				badGuy.b.move(badGuy.o,move)
 				# if they don't have any way to block the force, you're great
-				if not badGuy.otherLookAhead(False, 1):
+				if not badGuy.otherLookAhead([i,1,2,numMoves,totalM]):
 					moves += [move]
+					numMoves += 1
 
 				badGuy.b.clearPoint(move)
 
@@ -503,19 +479,21 @@ class Vaapad:
 
 		return True
 
-	def otherLookAhead(self,fullSearch = True, depth = 0):
+	def otherLookAhead(self, display):
 		""" looks ahead defensively to try to block opponent's forces """
 
 		badGuy = Vaapad()
-		badGuy.updateAll(self.b,self.o,self.d)
+		badGuy.updateAll(self.b,self.o,self.d,self.lastPrintTime)
 		possMoves = []
 		workingMoves = []
 
-		combos, forceList = badGuy.findCombos(32, 2, depth)
+		combos, forceList = badGuy.findCombos(display)
 
 		if badGuy.assured:
-			if depth == 3:
+			if display[1] == 3:
 				return False
+
+			display = [display[i] if i != 1 else display[i]+1 for i in range(len(display))]
 			
 			possMoves = self.getPossMoves(combos, forceList, possMoves)
 			badGuy.b = Board()
@@ -525,11 +503,13 @@ class Vaapad:
 			while possMoves:
 				move = possMoves[0]
 
-				text = ""
-				if depth:
-					text += "(" + str(depth) + "-deep) "
-				text += "Checking Blocks: "
-				self.d.displayProgress(text,100.0*i/len(possMoves))
+				if display[1] == 1:
+					display[0] = 100.0*i/(len(possMoves)+i)
+					display[3] = len(workingMoves)
+				if display[2] == 2 and display[1] == 2:
+					display[0] = (100.0/display[4])*(display[0]+1.0*i/(len(possMoves)+i))
+
+				self.updateText(display[0],display[1],0,display[2], display[3])
 
 				badGuy.assured = False
 				badGuy.b.move(badGuy.o,move)
@@ -540,27 +520,27 @@ class Vaapad:
 					badGuy.b.move(badGuy.n,check)
 
 					goodGuy = Vaapad()
-					goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d)
+					goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d,badGuy.lastPrintTime)
 
-					lookFurther = goodGuy.otherLookAhead(False, depth+1)
+					lookFurther = goodGuy.otherLookAhead(display)
 
 					badGuy.b.clearPoint(check)
 					badGuy.b.clearPoint(move)
 
 					if lookFurther:	
-						if not fullSearch:
+						if display[1] != 1:
 							return True
 						workingMoves += [move]
 
 					newPossMoves = possMoves[1:]
 
 				else:
-					combos, forceList = badGuy.findCombos(32, ["Checking Blocks (",i,len(possMoves)], depth)
+					combos, forceList = badGuy.findCombos(display)
 
 					badGuy.b.clearPoint(move)
 
 					if not badGuy.assured:
-						if not fullSearch:
+						if display[1] != 1:
 							return True
 						workingMoves += [move]
 						newPossMoves = possMoves[1:]
@@ -576,11 +556,11 @@ class Vaapad:
 
 			else: # admit defeat
 				self.scared = True
-				if not fullSearch:
+				if display[1] != 1:
 					return False
 
 		else:
-			if not fullSearch:
+			if display[1] != 0:
 				return True
 
 	def getPossMoves(self, combos, forceList,possMoves):
@@ -622,16 +602,14 @@ class Vaapad:
 		nMoves = len(self.moves)
 
 		for move in self.moves:
-			self.d.displayProgress("Finding Optimal Move: ",100.0*i/nMoves)
-
 			goodGuy = Vaapad()
-			goodGuy.updateAll(self.b,self.n,self.d)
+			goodGuy.updateAll(self.b,self.n,self.d,self.lastPrintTime)
 			goodGuy.b.move(self.n,move)
 
 			score = goodGuy.webMagicNumber(orig, move)
 
 			if move not in forceMoves:
-				finished = goodGuy.findShatterpoint(6, ["Finding Optimal Move (",i,nMoves])
+				finished = goodGuy.findShatterpoint([100.0*i/nMoves,1,3,len(bestMoves)], 6)
 				if not (finished and not goodGuy.assured):
 					score = score*1.25
 
@@ -713,7 +691,6 @@ class Vaapad:
 
 		return 1.0*2**mostC[0]/(2**mostC[1])
 
-
 	def checkPoints(self):
 		""" checks points magically """
 
@@ -790,18 +767,20 @@ class Vaapad:
 		More efficient than updating fully each time
 		"""
 
-	def updateAll(self, board, n, display):
+	def updateAll(self, board, n, newDisplay, printTime):
 		"""
 		Updates all pairs, moves and lines for the current board
 		"""
 		self.b.copyAll(board) # Board object, not array
 		self.n = n
-		self.d = display
+		self.d = newDisplay
 		self.o = self.b.otherNumber(self.n)
 		self.moves = list(self.b.openPoints())
 		self.nMoves = len(self.b.myPoints(self.n))
 		self.decided = False
 		self.assured = False
 		self.scared = False
+
+		self.lastPrintTime = printTime
 
 
