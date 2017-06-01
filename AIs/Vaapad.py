@@ -40,6 +40,17 @@ class Vaapad:
 		""" returns the colors of vaapad """
 		return [(150,0,230),(80, 0, 130)]
 
+	def updateText(self,percent, depth, ply, textN, numMoves):
+		""" updates the display text based on the inputs """
+		possText = ["Shatterpoint", "Possible Move", "Unbeatable Move", "Optimal Move"]
+
+		text = "(" + str(depth) + "-deep, " + str(ply) + "-ply) "
+		text += "Finding " if numMoves == 0 else "Found " + str(numMoves) + " "
+		text += possText[textN]
+		text += ": " if numMoves <= 1 else "s: "
+
+		self.d.displayProgress(text, percent)
+
 	# high level move functions
 	def move(self,board,n, display):
 		"""
@@ -256,27 +267,30 @@ class Vaapad:
 
 		pairs = self.b.findForces(self.n)
 		lenPairs = len(pairs)
-		allowedP = self.forceCheck(pairs,lenPairs)
+		allowedP, allowedI = self.forceCheck(pairs,lenPairs)
 
 		combos = []
 		openCombos = []
+		moveList = []
 
-		for pairN in allowedP[0]:
-			for i in allowedP[1]:
+		for pairN in allowedP:
+			for i in allowedI:
 
-				self.b.move(self.n,pairs[pairN][i])
-				self.b.move(self.o,pairs[pairN][1-i])
+				move = pairs[pairN][i]
+				otherMove = pairs[pairN][1-i]
 
-				itWorks = self.updateWinsForPoint(pairs[pairN],i)
-				if itWorks:
-					combos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
+				if move in moveList:
+					self.assured = True
+					self.decided = True
+					combos += [[[move,otherMove]]]
+
 				else:
-					openCombos += [[[pairs[pairN][i],pairs[pairN][1-i]]]]
+					openCombos += [[[move, otherMove]]]
 
-				self.b.clearPoint(pairs[pairN][i])
-				self.b.clearPoint(pairs[pairN][1-i])
+				moveList += [move]
 
 		return combos, openCombos
+
 
 	def forceCheck(self,pairs,lenPairs):
 		""" sees if it can pull anti-force combo """
@@ -286,7 +300,7 @@ class Vaapad:
 		allowedPairs = []
 		allowedIndex = []
 
-		if len(otherChecks) and lenPairs:
+		if otherChecks and lenPairs:
 			checkLine = self.b.lineToPoints(next(iter(otherChecks)))
 			for p in checkLine:
 				if self.b.pointToValue(p) == 0:
@@ -308,7 +322,96 @@ class Vaapad:
 			allowedPairs = range(lenPairs)
 			allowedIndex = range(2)
 
-		return [allowedPairs,allowedIndex]
+		return allowedPairs, allowedIndex
+
+	def findCombos(self, limit = 32, display = 1, depth = 0):
+		"""
+		finds shatterpoint but returns all the forces in the top used ply,
+		if there is one
+		"""
+
+		oldBoard = Board()
+		oldBoard.copyAll(self.b)
+		combos, openCombos, forceList = self.fastCombos()
+
+		ply = 1
+
+		while (not combos) and openCombos and ply <= limit:
+			total = len(openCombos)
+			oldPercent = -100
+
+			nextOC = []
+			ocSet = set()
+
+			if type(display) == list and ply > 3:
+				self.displayForce(0,ply,display, depth)
+
+			for i in range(total):
+
+				percent = 100.0*i/total
+				if type(display) == int:
+					if percent >= oldPercent + 3 and self.nMoves > 2:
+						self.displayForce(percent,ply,display, depth)
+						oldPercent = percent
+
+				tryForce, ocSet = self.shouldForce(openCombos,i,ocSet)
+				if tryForce:
+
+					for pair in openCombos[i]:
+						self.b.move(self.n,pair[0])
+						self.b.move(self.o,pair[1])
+
+					newC, newOC, newFL = self.fastCombos()
+
+					for c in range(len(newOC)):
+						nextOC += [openCombos[i] + newOC[c]]
+					for c in range(len(newC)):
+						combos += [openCombos[i] + newC[c]]
+					for forces in newFL:
+						forceList += [forces]
+
+					self.b = Board()
+					self.b.copyAll(oldBoard)
+
+			openCombos = nextOC
+			ply += 1
+
+		return combos, forceList
+
+	def fastCombos(self):
+		""" fastForce but finds force sets """
+
+		pairs = self.b.findForces(self.n)
+		lenPairs = len(pairs)
+		allowedP, allowedI = self.forceCheck(pairs,lenPairs)
+
+		combos = []
+		openCombos = []
+		forceList = []
+		moveList = []
+
+		for pairN in allowedP:
+			for i in allowedI:
+				move = pairs[pairN][i]
+				otherMove = pairs[pairN][1-i]
+
+				if move in moveList:
+					otherMove2 = False
+					for pairN2 in range(pairN):
+						for i in allowedI:
+							if move == pairs[pairN2][i]:
+								otherMove2 = pairs[pairN2][1-i]
+					self.assured = True
+					self.decided = True
+					combos += [[[move,otherMove,otherMove2]]]
+					forceList += [self.b.findForces(self.o)]
+
+				else:
+					openCombos += [[[move, otherMove]]]
+
+				moveList += [move]
+
+		return combos, openCombos, forceList
 
 	def displayForce(self,percent,ply,display, depth):
 		""" displays progress text for forcing """
@@ -400,51 +503,33 @@ class Vaapad:
 
 		return True
 
-	def otherLookAhead(self,fullSearch = True,depth=0):
+	def otherLookAhead(self,fullSearch = True, depth = 0):
 		""" looks ahead defensively to try to block opponent's forces """
-		if depth > 0 and fullSearch:
-			print "You've created a problem"
 
 		badGuy = Vaapad()
 		badGuy.updateAll(self.b,self.o,self.d)
 		possMoves = []
 		workingMoves = []
 
-		disp = 0 if depth == 1 else 2
-
-		test = badGuy.findShatterpoint(32, disp, depth)
+		combos, forceList = badGuy.findCombos(32, 2, depth)
 
 		if badGuy.assured:
 			if depth == 3:
 				return False
-
-			for pair in badGuy.forcingCombo:
-				for move in pair:
-					if move not in possMoves:
-						possMoves += [move]
-
-				badGuy.b.move(badGuy.n,pair[0])
-				badGuy.b.move(badGuy.o,pair[1])
-
-			newPairs = badGuy.b.findForces(badGuy.o)
-
-			for pair in newPairs:
-				for move in pair:
-					if move not in possMoves:
-						possMoves += [move]
-
+			
+			possMoves = self.getPossMoves(combos, forceList, possMoves)
 			badGuy.b = Board()
 			badGuy.b.copyAll(self.b)
 
 			i = 0
-			lenPM = len(possMoves)
+			while possMoves:
+				move = possMoves[0]
 
-			for move in possMoves:
 				text = ""
 				if depth:
 					text += "(" + str(depth) + "-deep) "
 				text += "Checking Blocks: "
-				self.d.displayProgress(text,100.0*i/lenPM)
+				self.d.displayProgress(text,100.0*i/len(possMoves))
 
 				badGuy.assured = False
 				badGuy.b.move(badGuy.o,move)
@@ -467,23 +552,29 @@ class Vaapad:
 							return True
 						workingMoves += [move]
 
+					newPossMoves = possMoves[1:]
+
 				else:
-					finished = badGuy.findShatterpoint(6, ["Checking Blocks (",i,lenPM], depth)
+					combos, forceList = badGuy.findCombos(32, ["Checking Blocks (",i,len(possMoves)], depth)
 
 					badGuy.b.clearPoint(move)
 
-					if (not badGuy.assured) and finished:
+					if not badGuy.assured:
 						if not fullSearch:
 							return True
 						workingMoves += [move]
+						newPossMoves = possMoves[1:]
+
+					else:
+						newPossMoves = self.getPossMoves(combos,forceList,possMoves)
 
 				i += 1
+				possMoves = newPossMoves
 
 			if workingMoves:
 				self.moves = workingMoves
 
 			else: # admit defeat
-				self.moves = possMoves
 				self.scared = True
 				if not fullSearch:
 					return False
@@ -492,9 +583,31 @@ class Vaapad:
 			if not fullSearch:
 				return True
 
+	def getPossMoves(self, combos, forceList,possMoves):
+		""" gets the possible, shared moves among each combo """
+		for i in range(len(combos)):
+			comboMoves = []
+			for pair in combos[i]:
+				for move in pair:
+					if move not in comboMoves:
+						comboMoves += [move]
+			for pair in forceList[i]:
+				for move in pair:
+					if move not in comboMoves:
+						comboMoves += [move]
+
+			if i == 0 and not possMoves:
+				possMoves = comboMoves
+			else:
+				newPM = []
+				for move in possMoves:
+					if move in comboMoves:
+						newPM += [move]
+				possMoves = newPM
+		return possMoves
+
 	def weakLookAhead(self):
 		""" looks ahead, tries to set up a decent force """
-
 		forceMoves = []
 		pairs = self.b.findForces(self.n)
 		for pair in pairs:
@@ -564,7 +677,7 @@ class Vaapad:
 					osLines += 1
 
 		# print move, myLines, osLines
-			
+
 	def webMagicNumber(self, originalScore, move):
 		"""
 		a new magic number theory
@@ -577,17 +690,39 @@ class Vaapad:
 
 		score = myPoints*(1+ODQ) + osPoints*(-1+ODQ)
 
-		return score - originalScore
+		preMultiplyer = self.checkGoodPoints()
+
+		return (score - originalScore)*preMultiplyer
+
+	def checkGoodPoints(self):
+		""" checks good points real good """
+		myPoints, osPoints = (0,)*2
+
+		corners = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3)]
+		centers = [(1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
+
+		cornerN = [self.b.pointToValue(c) for c in corners]
+		centerN = [self.b.pointToValue(c) for c in centers]
+
+		cornerC = (cornerN.count(self.n), cornerN.count(self.o))
+		centerC = (centerN.count(self.n), centerN.count(self.o))
+
+		mostC = [0,0]
+		mostC[0] = cornerC[0] if cornerC[0] > centerC[0] else centerC[0]
+		mostC[1] = cornerC[1] if cornerC[1] > centerC[1] else centerC[1]
+
+		return 1.0*2**mostC[0]/(2**mostC[1])
+
 
 	def checkPoints(self):
 		""" checks points magically """
 
 		myPoints, osPoints = (0,)*2
 
-		allPoints = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
+		goodPoints = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
 					 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
 
-		for p in allPoints:
+		for p in goodPoints:
 			myL = len(self.myLines(p,self.n))
 			osL = len(self.myLines(p,self.o))
 
@@ -621,9 +756,9 @@ class Vaapad:
 			myN = plane.count(self.n)
 			osN = plane.count(self.o)
 			if myN and not osN:
-				myPlanes += 1
+				myPlanes += myN**2
 			elif osN and not myN:
-				osPlanes += 1
+				osPlanes += osN**2
 
 		return myPlanes, osPlanes
 
@@ -645,7 +780,7 @@ class Vaapad:
 
 		lines = []
 		for num in range(1,4):
-			lines += self.b.openLinesForPoint(n,p,num)
+			lines += self.b.openLinesForPoint(n,p,num)*num
 
 		return lines
 
@@ -668,27 +803,5 @@ class Vaapad:
 		self.decided = False
 		self.assured = False
 		self.scared = False
-
-	def updateWinsForPoint(self, pair, myNum):
-		"""
-		Checks whether a just-filled point caused any wins
-		"""
-		otherNum = 0 if myNum == 1 else 1
-
-		wins = self.b.openLinesForPoint(self.n,pair[myNum],4)
-		if wins:
-			self.assured = True
-			self.decided = True
-			return True
-
-		checks = self.b.openLinesForPoint(self.n,pair[myNum],3)
-		other = self.b.openLinesForPoint(self.o,pair[otherNum],4)
-		if  checks and not other:
-			self.assured = True
-			self.decided = True
-			return True
-
-		return False
-
 
 
