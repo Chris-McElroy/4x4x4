@@ -434,16 +434,13 @@ class Vaapad:
 			percent = 100.0*i/totalM
 			self.updateText(percent,0,0,2,numMoves)
 
-			shouldMove = self.shouldStrong(move,forceMoves)
+			badGuy.b.move(badGuy.o,move)
+			# if they don't have any way to block the force, you're great
+			if not badGuy.otherLookAhead([percent,1,2,numMoves,i,totalM]):
+				moves += [move]
+				numMoves += 1
 
-			if shouldMove:
-				badGuy.b.move(badGuy.o,move)
-				# if they don't have any way to block the force, you're great
-				if not badGuy.otherLookAhead([percent,1,2,numMoves,i,totalM]):
-					moves += [move]
-					numMoves += 1
-
-				badGuy.b.clearPoint(move)
+			badGuy.b.clearPoint(move)
 
 			# if (move in moves):
 			# 	if not shouldMove:
