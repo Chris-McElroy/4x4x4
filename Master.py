@@ -19,7 +19,6 @@ class Master:
         self.forced = False
         self.wins = [0, 0]
         self.AIList = [None, Vaapad, Human, Wildfire, Brute]
-        #test
 
     def main(self):
         """ Main controller of everything, likeyado """
