@@ -10,7 +10,7 @@ class BoardTest(unittest.TestCase):
 	# single 1 at 0,0,0
 	oneMoveBoard = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 	oneMoveBoard[0][0][0] = 1
-	# 1 at 0,0,0, 1 at 3,2,1, 2 at 1,2,3, 2 at 0,1,2. 
+	# 1 at 0,0,0, 1 at 3,2,1, 2 at 1,2,3, 2 at 0,1,2.
 	fourMoveBoard = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
 	fourMoveBoard[0][0][0] = 1
 	fourMoveBoard[3][2][1] = 1
@@ -347,10 +347,3 @@ class BoardTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-		
