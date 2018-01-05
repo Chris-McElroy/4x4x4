@@ -151,7 +151,7 @@ class Vaapad:
 
 		for l in lines:
 			points = self.b.lineToPoints(l)
-			for i in range(4): 
+			for i in range(4):
 				if self.b.pointToValue(points[i]) == 0:
 					move = points[i]
 					winningMoves += [move] # double counts double 4-in-a-rows bc hell yeah
@@ -491,10 +491,8 @@ class Vaapad:
 				return False
 
 			display = [display[i] if i != 1 else display[i]+1 for i in range(len(display))]
-			
+
 			possMoves = self.getPossMoves(combos, forceList, possMoves)
-			badGuy.b = Board()
-			badGuy.b.copyAll(self.b)
 
 			i = 0
 			while possMoves:
@@ -512,24 +510,25 @@ class Vaapad:
 				badGuy.b.move(badGuy.o,move)
 
 				check = badGuy.fourInARow(badGuy.o)
-				
+
+                # this means it will never try a casual check out of shatterpoint
 				if check:
-					badGuy.b.move(badGuy.n,check)
-
-					goodGuy = Vaapad()
-					goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d,badGuy.lastPrintTime)
-
-					lookFurther = goodGuy.otherLookAhead(display)
-
-					badGuy.b.clearPoint(check)
-					badGuy.b.clearPoint(move)
-
-					if lookFurther:	
-						if display[1] != 1:
-							return True
-						workingMoves += [move]
-
 					newPossMoves = possMoves[1:]
+				# 	badGuy.b.move(badGuy.n,check)
+                #
+				# 	goodGuy = Vaapad()
+				# 	goodGuy.updateAll(badGuy.b,badGuy.o,badGuy.d,badGuy.lastPrintTime)
+                #
+				# 	lookFurther = goodGuy.otherLookAhead(display)
+                #
+				# 	badGuy.b.clearPoint(check)
+				# 	badGuy.b.clearPoint(move)
+                #
+				# 	if lookFurther:
+				# 		if display[1] != 1:
+				# 			return True
+				# 		workingMoves += [move]
+                #
 
 				else:
 					combos, forceList = badGuy.findCombos(display)
@@ -607,7 +606,7 @@ class Vaapad:
 
 			if move not in forceMoves:
 				finished = goodGuy.findShatterpoint([100.0*i/nMoves,1,3,len(bestMoves)], 6)
-				if not (finished and not goodGuy.assured):
+				if goodGuy.assured or not finished:
 					score = score*1.25
 
 			if score > bestScore:
@@ -659,7 +658,7 @@ class Vaapad:
 		"""
 
 		myPoints, osPoints = self.checkPoints()
-		myPlanes, osPlanes = self.checkPlanes()		
+		myPlanes, osPlanes = self.checkPlanes()
 
 		ODQ = (1-osPlanes/2.5)/2.0
 
@@ -671,7 +670,6 @@ class Vaapad:
 
 	def checkGoodPoints(self):
 		""" checks good points real good """
-		myPoints, osPoints = (0,)*2
 
 		corners = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3)]
 		centers = [(1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
@@ -694,7 +692,7 @@ class Vaapad:
 		myPoints, osPoints = (0,)*2
 
 		goodPoints = [(0,0,0),(3,0,0),(0,3,0),(0,0,3),(0,3,3),(3,0,3),(3,3,0),(3,3,3),
-					 (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
+					  (1,1,1),(2,1,1),(1,2,1),(1,1,2),(1,2,2),(2,1,2),(2,2,1),(2,2,2)]
 
 		for p in goodPoints:
 			myL = len(self.myLines(p,self.n))
@@ -779,5 +777,3 @@ class Vaapad:
 		self.scared = False
 
 		self.lastPrintTime = printTime
-
-
